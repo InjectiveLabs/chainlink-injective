@@ -2,6 +2,7 @@ package e2e
 
 import (
 	"context"
+	"encoding/hex"
 	"encoding/json"
 	"math/big"
 	"net"
@@ -55,6 +56,24 @@ func sumInts(n0 *big.Int, n ...*big.Int) *big.Int {
 	}
 
 	return sum
+}
+
+func fromHex(h string) []byte {
+	b, err := hex.DecodeString(h)
+	orFail(err)
+
+	return b
+}
+
+func fromHex32(h string) (bytes32 [32]byte) {
+	b, err := hex.DecodeString(h)
+	orFail(err)
+
+	if n := copy(bytes32[:], b); n != 32 {
+		panic("short read")
+	}
+
+	return bytes32
 }
 
 func waitForService(ctx context.Context, conn *grpc.ClientConn) error {

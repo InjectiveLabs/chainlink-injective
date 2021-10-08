@@ -1,0 +1,49 @@
+---
+version: "3.6"
+
+services:
+  postgres:
+    image: postgres:13
+    restart: on-failure
+    environment:
+      - POSTGRES_DB=chainlink
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    volumes:
+      - ./docker-init-scripts/postgres:/docker-entrypoint-initdb.d
+      - postgres-volume:/var/lib/postgresql/data
+
+  chainlink-node:
+    image: smartcontract/chainlink:0.10.14
+    restart: on-failure
+    depends_on:
+      - postgres
+    secrets:
+      - node_password
+      - apicredentials
+    env_file:
+      - ./chainlink.env
+    volumes:
+      - .:/host
+    entrypoint:
+      - chainlink
+      - node
+      - start
+      - "-d"
+      - "-p"
+      - /run/secrets/node_password
+      - "-a"
+      - /run/secrets/apicredentials
+    ports:
+      - "6688:6688"
+    environment:
+      - DATABASE_URL=postgresql://postgres@postgres:5432/chainlink?sslmode=disable
+
+volumes:
+  postgres-volume: null
+
+secrets:
+  node_password:
+    file: ./cl_secrets/password.txt
+  apicredentials:
+    file: ./cl_secrets/apicredentials
+
