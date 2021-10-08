@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/gogo/protobuf/proto"
 
 	"github.com/smartcontractkit/libocr/offchainreporting2/types"
 
@@ -104,12 +105,18 @@ func (c *CosmosModuleConfigTracker) LatestConfig(
 		transmitters = append(transmitters, types.Account(acc.String()))
 	}
 
+	onchainConfigBytes, err := proto.Marshal(resp.FeedConfig.OnchainConfig)
+	if err != nil {
+		panic(err)
+	}
+
 	config := types.ContractConfig{
 		ConfigDigest:          configDigestFromBytes(resp.FeedConfigInfo.LatestConfigDigest),
 		ConfigCount:           uint64(resp.FeedConfigInfo.ConfigCount),
 		Signers:               signers,
 		Transmitters:          transmitters,
 		F:                     uint8(resp.FeedConfig.F),
+		OnchainConfig:         onchainConfigBytes,
 		OffchainConfigVersion: resp.FeedConfig.OffchainConfigVersion,
 		OffchainConfig:        resp.FeedConfig.OffchainConfig,
 	}

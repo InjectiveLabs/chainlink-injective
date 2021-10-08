@@ -1,8 +1,6 @@
 package injective
 
 import (
-	"errors"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/smartcontractkit/libocr/offchainreporting2/types"
 
@@ -13,37 +11,9 @@ const ConfigDigestPrefixCosmos types.ConfigDigestPrefix = 2
 
 var _ types.OffchainConfigDigester = CosmosOffchainConfigDigester{}
 
-type CosmosOffchainConfigDigester struct {
-	ChainID string
-	FeedId  string
-
-	MinAnswer   sdk.Dec
-	MaxAnswer   sdk.Dec
-	Description string
-}
+type CosmosOffchainConfigDigester struct{}
 
 func (d CosmosOffchainConfigDigester) ConfigDigest(cc types.ContractConfig) (types.ConfigDigest, error) {
-	if len(d.ChainID) == 0 {
-		err := errors.New("ChainID is not set, but required")
-		return types.ConfigDigest{}, err
-	} else if len(d.FeedId) == 0 {
-		err := errors.New("FeedId is not set, but required")
-		return types.ConfigDigest{}, err
-	}
-
-	// TODO: figure out discrpancy between ContractConfig.Signers
-	// and onchain values. Signers in offchain are expected to be pubkeys,
-	// while chain code expects addresses.
-	// ---------
-	//
-	// for _, pubkey := range cc.Signers {
-	// 	signerAcc := sdk.AccAddress((&secp256k1.PubKey{
-	// 		Key: pubkey,
-	// 	}).Address().Bytes())
-
-	// 	signers = append(signers, signerAcc.String())
-	// }
-
 	signers := make([]string, 0, len(cc.Signers))
 	for _, acc := range cc.Signers {
 		signers = append(signers, sdk.AccAddress(acc).String())
@@ -59,19 +29,17 @@ func (d CosmosOffchainConfigDigester) ConfigDigest(cc types.ContractConfig) (typ
 		transmitters = append(transmitters, addr.String())
 	}
 
-	config := &chaintypes.FeedConfig{
-		FeedId:                d.FeedId,
+	chainContractConfig := &chaintypes.ContractConfig{
+		ConfigCount:           cc.ConfigCount,
 		Signers:               signers,
 		Transmitters:          transmitters,
 		F:                     uint32(cc.F),
+		OnchainConfig:         cc.OnchainConfig,
 		OffchainConfigVersion: cc.OffchainConfigVersion,
 		OffchainConfig:        cc.OffchainConfig,
-		MinAnswer:             d.MinAnswer,
-		MaxAnswer:             d.MaxAnswer,
-		Description:           d.Description,
 	}
 
-	configDigest := configDigestFromBytes(config.Digest(d.ChainID))
+	configDigest := configDigestFromBytes(chainContractConfig.Digest())
 
 	return configDigest, nil
 }

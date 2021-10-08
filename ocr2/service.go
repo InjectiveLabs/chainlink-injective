@@ -16,6 +16,7 @@ import (
 	"github.com/InjectiveLabs/chainlink-injective/db"
 	"github.com/InjectiveLabs/chainlink-injective/db/model"
 	"github.com/InjectiveLabs/chainlink-injective/injective"
+	"github.com/InjectiveLabs/chainlink-injective/injective/tmclient"
 	chaintypes "github.com/InjectiveLabs/chainlink-injective/injective/types"
 	"github.com/InjectiveLabs/chainlink-injective/keys/ocrkey"
 	"github.com/InjectiveLabs/chainlink-injective/keys/p2pkey"
@@ -43,6 +44,7 @@ type jobService struct {
 	chainID          string
 	chainQueryClient chaintypes.QueryClient
 	cosmosClient     chainclient.CosmosClient
+	tmClient         tmclient.TendermintClient
 	onchainSigner    sdk.AccAddress
 	cosmosKeyring    keyring.Keyring
 
@@ -66,6 +68,7 @@ func NewJobService(
 	chainID string,
 	chainQueryClient chaintypes.QueryClient,
 	cosmosClient chainclient.CosmosClient,
+	tmClient tmclient.TendermintClient,
 	onchainSigner sdk.AccAddress,
 	cosmosKeyring keyring.Keyring,
 ) JobService {
@@ -78,7 +81,7 @@ func NewJobService(
 		ocrKey:               ocrKey,
 		// hardcoded defaults for now
 		ocrConfig: Config{
-			ContractPollInterval:               10 * time.Second,
+			ContractPollInterval:               15 * time.Second,
 			ContractTransmitterTransmitTimeout: 10 * time.Second,
 			DatabaseTimeout:                    10 * time.Second,
 		},
@@ -86,6 +89,7 @@ func NewJobService(
 		chainID:          chainID,
 		chainQueryClient: chainQueryClient,
 		cosmosClient:     cosmosClient,
+		tmClient:         tmClient,
 		onchainSigner:    onchainSigner,
 		cosmosKeyring:    cosmosKeyring,
 
@@ -99,7 +103,7 @@ func NewJobService(
 	}
 
 	if err := j.restartExistingJobs(); err != nil {
-		j.logger.WithError(err).Warningln("⚠️ failed to restart existing jobs")
+		j.logger.WithError(err).Warningln("⚠️  failed to restart existing jobs")
 	}
 
 	return j
@@ -135,7 +139,7 @@ func (j *jobService) restartExistingJobs() error {
 	}
 
 	if len(j.activeJobs) != len(jobs) {
-		j.logger.Warningln("⚠️ not all jobs recovered successfully")
+		j.logger.Warningln("⚠️  not all jobs recovered successfully")
 	} else if len(j.activeJobs) > 0 {
 		j.logger.WithField("jobs", len(j.activeJobs)).Infoln("✅ all jobs recovered successfully")
 	}
@@ -190,14 +194,12 @@ func (j *jobService) ocrStartForJob(jobID string, jobSpec *model.JobSpec) error 
 	}
 
 	configTracker := &injective.CosmosModuleConfigTracker{
-		FeedId:      string(jobSpec.FeedID),
-		QueryClient: j.chainQueryClient,
+		FeedId:           string(jobSpec.FeedID),
+		QueryClient:      j.chainQueryClient,
+		TendermintClient: j.tmClient,
 	}
 
-	offchainConfigDigester := &injective.CosmosOffchainConfigDigester{
-		ChainID: j.chainID,
-		FeedId:  string(jobSpec.FeedID),
-	}
+	offchainConfigDigester := &injective.CosmosOffchainConfigDigester{}
 
 	job, err := j.newJob(
 		jobID,

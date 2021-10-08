@@ -9,11 +9,8 @@ require (
 	github.com/bugsnag/panicwrap v1.3.4 // indirect
 	github.com/cosmos/cosmos-sdk v0.44.0
 	github.com/ethereum/go-ethereum v1.10.8
-	github.com/gedex/inflector v0.0.0-20170307190818-16278e9db813 // indirect
 	github.com/gin-gonic/gin v1.7.2
 	github.com/gogo/protobuf v1.3.3
-	github.com/golang/protobuf v1.5.2
-	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/itchyny/gojq v0.12.5
 	github.com/jawher/mow.cli v1.2.0
 	github.com/libp2p/go-libp2p-core v0.8.5
@@ -22,12 +19,11 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/shopspring/decimal v1.2.0
 	github.com/smartcontractkit/chainlink v0.10.14
-	github.com/smartcontractkit/libocr v0.0.0-20210826183649-d12971936c12
+	github.com/smartcontractkit/libocr v0.0.0-20210901161650-afc44a0b242a
 	github.com/tendermint/tendermint v0.34.13
 	github.com/xlab/closer v0.0.0-20190328110542-03326addb7c2
 	github.com/xlab/suplog v1.3.1
 	go.mongodb.org/mongo-driver v1.7.2
-	go.uber.org/multierr v1.7.0
 	golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97
 	google.golang.org/genproto v0.0.0-20210602131652-f16073e35f0c
 	google.golang.org/grpc v1.40.0
@@ -40,5 +36,3 @@ replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alp
 replace google.golang.org/grpc => google.golang.org/grpc v1.33.2
 
 replace github.com/btcsuite/btcutil => github.com/btcsuite/btcutil v1.0.2
-
-replace github.com/smartcontractkit/libocr => /Users/xlab/Documents/dev/InjectiveLabs/libocr-internal

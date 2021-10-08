@@ -78,6 +78,10 @@ func (j *jobDBWrapper) WriteConfig(ctx context.Context, config ocrtypes.Contract
 func (j *jobDBWrapper) ReadConfig(ctx context.Context) (*ocrtypes.ContractConfig, error) {
 	config, err := j.svc.GetContractConfig(ctx)
 	if err != nil {
+		if err == db.ErrNotFound {
+			return nil, nil
+		}
+
 		return nil, err
 	}
 

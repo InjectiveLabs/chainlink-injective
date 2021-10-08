@@ -28,3 +28,11 @@ test: export GOPROXY=direct
 test:
 	go install github.com/onsi/ginkgo/ginkgo@latest
 	ginkgo -v -r test/
+
+mongo:
+	mkdir -p var/mongo
+	mongod --dbpath ./var/mongo --port 27017 --bind_ip 127.0.0.1 & echo $$! > var/mongo/mongod.pid;
+	wait $(shell cat var/mongo/mongod.pid)
+
+mongo-stop: var/mongo/mongod.pid
+	kill `cat $<` && rm $<

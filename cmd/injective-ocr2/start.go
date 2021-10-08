@@ -17,6 +17,7 @@ import (
 	"github.com/InjectiveLabs/chainlink-injective/chainlink"
 	"github.com/InjectiveLabs/chainlink-injective/db"
 	"github.com/InjectiveLabs/chainlink-injective/db/dbconn"
+	"github.com/InjectiveLabs/chainlink-injective/injective/tmclient"
 	ocrtypes "github.com/InjectiveLabs/chainlink-injective/injective/types"
 	"github.com/InjectiveLabs/chainlink-injective/ocr2"
 	"github.com/InjectiveLabs/chainlink-injective/p2p"
@@ -288,7 +289,7 @@ func startCmd(cmd *cli.Cmd) {
 			log.Fatalln(err)
 		}
 
-		log.Infoln("Using PeerID %s for P2P identity", peer.ID(peerID).Pretty())
+		log.Infof("Using PeerID %s for P2P identity", peer.ID(peerID).Pretty())
 
 		// Load OCR2 key fron the keystore
 		//
@@ -318,6 +319,7 @@ func startCmd(cmd *cli.Cmd) {
 			*cosmosChainID,
 			ocrtypes.NewQueryClient(daemonConn),
 			cosmosClient,
+			tmclient.NewRPCClient(*tendermintRPC),
 			senderAddress,
 			cosmosKeyring,
 		)

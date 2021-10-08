@@ -68,6 +68,13 @@ func initChainlinkOptions(
 		Value:  "",
 	})
 
+	*eiSecretCI = cmd.String(cli.StringOpt{
+		Name:   "ei-ci-secret",
+		Desc:   "External Initiator secret for Chainlink->Initiator calls.",
+		EnvVar: "EI_CI_SECRET",
+		Value:  "",
+	})
+
 	*eiListenAddrCI = cmd.String(cli.StringOpt{
 		Name:   "ei-ci-listen",
 		Desc:   "External Initiator listen address for Chainlink->Initiator calls.",

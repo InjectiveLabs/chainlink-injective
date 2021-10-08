@@ -228,13 +228,7 @@ func initP2PKey(
 ) (peerID p2pkey.PeerID, key p2pkey.Key, err error) {
 	switch {
 	case len(*p2pPrivKey) > 0:
-		pkBytes, err := hexToBytes(*p2pPrivKey)
-		if err != nil {
-			err = errors.Wrap(err, "failed to hex-decode P2P privkey")
-			return "", p2pkey.Key{}, err
-		}
-
-		key = p2pkey.Raw(pkBytes).Key()
+		key = p2pkey.Base64ToPrivKey(*p2pPrivKey)
 		peerID = key.MustGetPeerID()
 
 		// check that if P2P Key ID was specified separately, it must match the provided privkey
@@ -724,8 +718,7 @@ func p2pKeysExport(c *cli.Cmd) {
 			return
 		}
 
-		bz, _ := key.Raw()
-		fmt.Printf("%02X\n", bz)
+		fmt.Println(key.PrivKeyToBase64())
 	}
 }
 

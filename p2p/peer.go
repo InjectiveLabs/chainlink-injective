@@ -36,14 +36,6 @@ type NetworkingConfig struct {
 var ErrConfigNoValue = errors.New("field value is not specified")
 
 func (n *NetworkingConfig) Validate() error {
-	if len(n.P2PV2ListenAddresses) == 0 {
-		return errors.Wrap(ErrConfigNoValue, "P2PV2ListenAddresses")
-	}
-
-	if len(n.P2PV2AnnounceAddresses) == 0 {
-		return errors.Wrap(ErrConfigNoValue, "P2PV2AnnounceAddresses")
-	}
-
 	return nil
 }
 
@@ -136,6 +128,8 @@ func (p *peerService) IsStarted() bool {
 }
 
 func (p *peerService) Start() (err error) {
+	p.logger.Infoln("P2P Peer service starting")
+
 	p.onceStart.Do(func() {
 		p.runningMux.Lock()
 		defer p.runningMux.Unlock()
@@ -161,11 +155,10 @@ func (p *peerService) Start() (err error) {
 			},
 		}
 
-		p.logger.Infoln("Creating OCR2 P2P Peer", peerConfig)
-
-		peer, err := ocrnetworking.NewPeer(peerConfig)
-		if err != nil {
-			err = errors.Wrap(err, "failed to init peer")
+		peer, peerInitErr := ocrnetworking.NewPeer(peerConfig)
+		if peerInitErr != nil {
+			err = errors.Wrap(peerInitErr, "failed to init peer")
+			return
 		}
 
 		p.peer = &peerAdapter{
@@ -182,10 +175,16 @@ func (p *peerService) Peer() Peer {
 	p.runningMux.RLock()
 	defer p.runningMux.RUnlock()
 
+	if !p.running {
+		return nil
+	}
+
 	return p.peer
 }
 
 func (p *peerService) Close() (err error) {
+	p.logger.Infoln("P2P Peer service stopping")
+
 	p.onceStop.Do(func() {
 		p.runningMux.Lock()
 		defer p.runningMux.Unlock()

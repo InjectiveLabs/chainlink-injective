@@ -33,3 +33,5 @@ var/
 .env
 
 swagger.json
+external_initiator_injective.env
+.cookiefile

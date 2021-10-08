@@ -81,6 +81,24 @@ func (export EncryptedP2PKeyExport) DecryptPrivateKey(passphrase string) (k *Key
 
 type Raw []byte
 
+func Base64ToPrivKey(b64 string) Key {
+	b, err := cryptop2p.ConfigDecodeKey(b64)
+	if err != nil {
+		panic(errors.Wrap(err, "could not base64-decode private key"))
+	}
+
+	return Raw(b).Key()
+}
+
+func (k Key) PrivKeyToBase64() string {
+	b, err := cryptop2p.MarshalPrivateKey(k.PrivKey)
+	if err != nil {
+		panic(errors.Wrap(err, "could not marshal private key"))
+	}
+
+	return cryptop2p.ConfigEncodeKey(b)
+}
+
 func (r Raw) Key() Key {
 	privK, err := cryptop2p.UnmarshalPrivateKey([]byte(r))
 	if err != nil {
