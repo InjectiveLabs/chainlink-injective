@@ -1,0 +1,29 @@
+syntax = "proto3";
+package chainlink.cosmos.ocr2.config.v1beta1;
+
+option go_package = "../config";
+
+message OffchainConfig {
+  uint64   delta_progress = 1;
+  uint64   delta_resend = 2;
+  uint64   delta_round = 3;
+  uint64   delta_grace = 4;
+  uint64   delta_stage = 5;
+  uint32   r_max = 6;
+  repeated uint32 s = 7;
+  repeated bytes offchain_public_keys = 8;
+  repeated string peer_ids = 9;
+  bytes    reporting_plugin_config = 10;
+  uint64   max_duration_query = 11;
+  uint64   max_duration_observation = 12;
+  uint64   max_duration_report = 13;
+  uint64   max_duration_should_accept_finalized_report = 14;
+  uint64   max_duration_should_transmit_accepted_report = 15;
+  SharedSecretEncryptionsProto shared_secret_encryptions = 16;
+}
+
+message SharedSecretEncryptionsProto {
+  bytes diffieHellmanPoint = 1;
+  bytes sharedSecretHash = 2;
+  repeated bytes encryptions = 3;
+}

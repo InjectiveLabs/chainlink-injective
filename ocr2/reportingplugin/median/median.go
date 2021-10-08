@@ -143,7 +143,7 @@ func deviates(thresholdPPB uint64, old *big.Int, new *big.Int) bool {
 var _ types.ReportingPlugin = &numericalMedian{}
 
 type numericalMedian struct {
-	Config              OffchainConfig
+	Config              *MedianPluginConfig
 	ContractTransmitter MedianContract
 	DataSource          DataSource
 	Logger              loghelper.LoggerWithContext
@@ -290,7 +290,7 @@ func (nm *numericalMedian) shouldReport(
 			resultRoundRequested.epoch,
 			resultRoundRequested.round,
 			resultRoundRequested.err =
-			nm.ContractTransmitter.LatestRoundRequested(ctx, nm.Config.DeltaC)
+			nm.ContractTransmitter.LatestRoundRequested(ctx, time.Duration(nm.Config.DeltaC))
 	})
 
 	subs.Wait()
@@ -316,11 +316,11 @@ func (nm *numericalMedian) shouldReport(
 			resultTransmissionDetails.round == 0
 
 	deviation := // Has the result changed enough to merit a new report?
-		deviates(nm.Config.AlphaPPB, resultTransmissionDetails.latestAnswer, answer)
+		deviates(nm.Config.AlphaPpb, resultTransmissionDetails.latestAnswer, answer)
 
 	// TODO: would it make sense to compare with observationsTimestamp here?
 	deltaCTimeout := // Has enough time passed since the last report, to merit a new one?
-		resultTransmissionDetails.latestTimestamp.Add(nm.Config.DeltaC).
+		resultTransmissionDetails.latestTimestamp.Add(time.Duration(nm.Config.DeltaC)).
 			Before(time.Now())
 
 	unfulfilledRequest := // Has a new report been requested explicitly?
@@ -331,7 +331,7 @@ func (nm *numericalMedian) shouldReport(
 	logger := nm.Logger.MakeChild(commontypes.LogFields{
 		"timestamp":                 reportTimestamps,
 		"initialRound":              initialRound,
-		"alphaPPB":                  nm.Config.AlphaPPB,
+		"alphaPPB":                  nm.Config.AlphaPpb,
 		"deviation":                 deviation,
 		"deltaC":                    nm.Config.DeltaC,
 		"deltaCTimeout":             deltaCTimeout,
@@ -459,7 +459,7 @@ func (nm *numericalMedian) ShouldAcceptFinalizedReport(
 		return false, errors.Wrap(err, "error during medianFromReport")
 	}
 
-	deviates := deviates(nm.Config.AlphaPPB, nm.latestAcceptedMedian, reportMedian)
+	deviates := deviates(nm.Config.AlphaPpb, nm.latestAcceptedMedian, reportMedian)
 	nothingPending := !contractEpochRound.Less(nm.latestAcceptedEpochRound)
 	result := deviates || nothingPending
 
