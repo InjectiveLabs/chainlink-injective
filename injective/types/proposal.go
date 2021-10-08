@@ -78,24 +78,26 @@ func (p *SetBatchConfigProposal) ValidateBasic() error {
 
 	for _, feed := range p.FeedProperties {
 		f := FeedConfig{
-			FeedId:                feed.FeedId,
-			Signers:               p.Signers,
-			Transmitters:          p.Transmitters,
-			F:                     feed.F,
+			Signers:      p.Signers,
+			Transmitters: p.Transmitters,
+			F:            feed.F,
+			OnchainConfig: &OnchainConfig{
+				FeedId:              feed.FeedId,
+				MinAnswer:           feed.MinAnswer,
+				MaxAnswer:           feed.MaxAnswer,
+				LinkPerObservation:  feed.LinkPerObservation,
+				LinkPerTransmission: feed.LinkPerTransmission,
+				LinkDenom:           p.LinkDenom,
+				UniqueReports:       feed.UniqueReports,
+				Description:         feed.Description,
+			},
 			OffchainConfigVersion: feed.OffchainConfigVersion,
 			OffchainConfig:        feed.OffchainConfig,
-			MinAnswer:             feed.MinAnswer,
-			MaxAnswer:             feed.MaxAnswer,
-			LinkPerObservation:    feed.LinkPerObservation,
-			LinkPerTransmission:   feed.LinkPerTransmission,
-			LinkDenom:             p.LinkDenom,
-			UniqueReports:         feed.UniqueReports,
-			Description:           feed.Description,
 		}
+
 		if err := f.ValidateBasic(); err != nil {
 			return err
 		}
-
 	}
 	return gov.ValidateAbstract(p)
 }

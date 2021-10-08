@@ -1,7 +1,6 @@
 package types
 
 import (
-	"bytes"
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -14,22 +13,25 @@ import (
 const FeedIDMaxLength = 20
 
 var digestPrefixCosmos = []byte("\x00\x02")
-var digestSeparator = []byte("\x01\x02")
 
-func (cfg *FeedConfig) Digest(chainID string) []byte {
+func (cfg *ContractConfig) Digest() []byte {
 	data, err := proto.Marshal(cfg)
 	if err != nil {
 		panic("unmarshable")
 	}
 
 	w := sha3.NewLegacyKeccak256()
-	w.Write(data)
-	w.Write(digestSeparator)
-	w.Write([]byte(chainID))
+	n, err := w.Write(data)
+	if err != nil {
+		panic(err)
+	} else if n != len(data) {
+		panic("short read")
+	}
 
 	configDigest := w.Sum(nil)
 	configDigest[0] = digestPrefixCosmos[0]
 	configDigest[1] = digestPrefixCosmos[1]
+
 	return configDigest
 }
 
@@ -55,43 +57,44 @@ func (cfg *FeedConfig) ValidateBasic() error {
 		len(cfg.Signers),
 		len(cfg.Transmitters),
 		int(cfg.F),
-
-		// usually opaque to chain, but we use this for testing
-		cfg.OffchainConfig,
 	); err != nil {
 		return err
 	}
 
+	if cfg.OnchainConfig == nil {
+		return sdkerrors.Wrap(ErrIncorrectConfig, "onchain config is not specified")
+	}
+
 	// TODO: determine whether this is a sensible enough limitation
-	if len(cfg.FeedId) > FeedIDMaxLength {
+	if len(cfg.OnchainConfig.FeedId) == 0 || len(cfg.OnchainConfig.FeedId) > FeedIDMaxLength {
 		return sdkerrors.Wrap(ErrIncorrectConfig, "feed_id is missing or incorrect length")
 	}
 
-	if strings.TrimSpace(cfg.FeedId) != cfg.FeedId {
+	if strings.TrimSpace(cfg.OnchainConfig.FeedId) != cfg.OnchainConfig.FeedId {
 		return sdkerrors.Wrap(ErrIncorrectConfig, "feed_id cannot have leading or trailing space characters")
 	}
 
-	if cfg.FeedAdmin != "" {
-		if _, err := sdk.AccAddressFromBech32(cfg.FeedAdmin); err != nil {
+	if len(cfg.OnchainConfig.FeedAdmin) > 0 {
+		if _, err := sdk.AccAddressFromBech32(cfg.OnchainConfig.FeedAdmin); err != nil {
 			return err
 		}
 	}
 
-	if cfg.BillingAdmin != "" {
-		if _, err := sdk.AccAddressFromBech32(cfg.BillingAdmin); err != nil {
+	if len(cfg.OnchainConfig.BillingAdmin) > 0 {
+		if _, err := sdk.AccAddressFromBech32(cfg.OnchainConfig.BillingAdmin); err != nil {
 			return err
 		}
 	}
 
-	if cfg.MinAnswer.IsNil() || cfg.MaxAnswer.IsNil() {
+	if cfg.OnchainConfig.MinAnswer.IsNil() || cfg.OnchainConfig.MaxAnswer.IsNil() {
 		return sdkerrors.Wrap(ErrIncorrectConfig, "MinAnswer and MaxAnswer cannot be nil")
 	}
 
-	if cfg.LinkPerTransmission.IsNil() || !cfg.LinkPerTransmission.IsPositive() {
+	if cfg.OnchainConfig.LinkPerTransmission.IsNil() || !cfg.OnchainConfig.LinkPerTransmission.IsPositive() {
 		return sdkerrors.Wrap(ErrIncorrectConfig, "LinkPerTransmission must be positive")
 	}
 
-	if cfg.LinkPerObservation.IsNil() || !cfg.LinkPerObservation.IsPositive() {
+	if cfg.OnchainConfig.LinkPerObservation.IsNil() || !cfg.OnchainConfig.LinkPerObservation.IsPositive() {
 		return sdkerrors.Wrap(ErrIncorrectConfig, "LinkPerObservation must be positive")
 	}
 
@@ -123,26 +126,21 @@ func (cfg *FeedConfig) ValidateBasic() error {
 		}
 	}
 
-	if cfg.LinkDenom == "" {
+	if len(cfg.OnchainConfig.LinkDenom) == 0 {
 		return sdkerrors.ErrInvalidCoins
 	}
 
 	return nil
 }
 
-var testEnvHeader = []byte("TEST_ENV")
-
 func checkConfigValid(
 	numSigners, numTransmitters, f int,
-	offchainConfig []byte,
 ) error {
 	if numSigners > MaxNumOracles {
 		return ErrTooManySigners
 	}
 
-	if f == 0 && bytes.Equal(offchainConfig, testEnvHeader) {
-		// a special case for testing
-	} else if f <= 0 {
+	if f <= 0 {
 		return sdkerrors.Wrap(ErrIncorrectConfig, "f must be positive")
 	}
 
