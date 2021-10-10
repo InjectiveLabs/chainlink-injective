@@ -3,11 +3,11 @@ package injective
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	"github.com/gogo/protobuf/proto"
 	"github.com/pkg/errors"
 	"github.com/smartcontractkit/libocr/offchainreporting2/types"
+	log "github.com/xlab/suplog"
 
 	chaintypes "github.com/InjectiveLabs/chainlink-injective/injective/types"
 	"github.com/InjectiveLabs/chainlink-injective/ocr2/reportingplugin/median"
@@ -38,15 +38,10 @@ func (c *CosmosModuleTransmitter) Transmit(
 		return err
 	}
 
-	reportToSign, err := chaintypes.ReportFromBytes([]byte(report))
-	if err != nil {
-		return err
-	}
-
 	// TODO: design how to decouple Cosmos reporting from reportingplugins of OCR2
 	// The reports are not necessarily numeric (see: titlerequest).
 	var reportRaw median.Report
-	if err := proto.Unmarshal([]byte(reportToSign.Report), &reportRaw); err != nil {
+	if err := proto.Unmarshal([]byte(report), &reportRaw); err != nil {
 		err = errors.Wrap(err, "failed to unmarshal opaque report as median.Report")
 		return err
 	}
@@ -63,10 +58,11 @@ func (c *CosmosModuleTransmitter) Transmit(
 			Observers:             reportRaw.Observers,
 			Observations:          reportRaw.Observations,
 		},
-		Signatures: make([][]byte, len(signatures)),
+		Signatures: make([][]byte, 0, len(signatures)),
 	}
+
 	for _, sig := range signatures {
-		msgTransmit.Signatures[sig.Signer] = sig.Signature
+		msgTransmit.Signatures = append(msgTransmit.Signatures, sig.Signature)
 	}
 
 	txResp, err := c.CosmosClient.SyncBroadcastMsg(msgTransmit)
@@ -76,8 +72,13 @@ func (c *CosmosModuleTransmitter) Transmit(
 
 	if txResp.Code != 0 {
 		raw, _ := json.Marshal(txResp)
-		return fmt.Errorf("cosmos Tx error: %s", string(raw))
+		return errors.Errorf("Cosmos Tx error: %s", string(raw))
 	}
+
+	log.WithFields(log.Fields{
+		"txHash":      txResp.TxHash,
+		"transmitter": c.CosmosClient.FromAddress().String(),
+	}).Infoln("🚀 Cosmos Tx successfully sent")
 
 	return nil
 }

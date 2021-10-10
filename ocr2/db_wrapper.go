@@ -39,6 +39,10 @@ func (j *jobDBWrapper) WriteState(ctx context.Context, configDigest ocrtypes.Con
 func (j *jobDBWrapper) ReadState(ctx context.Context, configDigest ocrtypes.ConfigDigest) (*ocrtypes.PersistentState, error) {
 	state, err := j.svc.GetPersistentState(ctx, model.ID(configDigestHex(configDigest)))
 	if err != nil {
+		if err == db.ErrNotFound {
+			return nil, nil
+		}
+
 		return nil, err
 	}
 

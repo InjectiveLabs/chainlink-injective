@@ -2,10 +2,10 @@ package injective
 
 import (
 	"context"
-	"errors"
 	"math/big"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/smartcontractkit/libocr/offchainreporting2/types"
 
 	chaintypes "github.com/InjectiveLabs/chainlink-injective/injective/types"
@@ -46,11 +46,25 @@ func (c *CosmosMedianReporter) LatestTransmissionDetails(
 		return
 	}
 
+	if resp.ConfigDigest == nil {
+		err = errors.Errorf("unable to receive config digest for for feedId=%s", c.FeedId)
+		return
+	}
+
 	configDigest = configDigestFromBytes(resp.ConfigDigest)
-	epoch = uint32(resp.EpochAndRound.Epoch)
-	round = uint8(resp.EpochAndRound.Round)
-	latestAnswer = resp.Data.Answer.BigInt()
-	latestTimestamp = time.Unix(resp.Data.TransmissionTimestamp, 0)
+
+	if resp.EpochAndRound != nil {
+		epoch = uint32(resp.EpochAndRound.Epoch)
+		round = uint8(resp.EpochAndRound.Round)
+	}
+
+	if resp.Data != nil {
+		latestAnswer = resp.Data.Answer.BigInt()
+		latestTimestamp = time.Unix(resp.Data.TransmissionTimestamp, 0)
+	} else {
+		latestAnswer = big.NewInt(0)
+	}
+
 	err = nil
 
 	return

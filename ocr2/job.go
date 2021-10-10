@@ -261,8 +261,10 @@ func (j *job) Run(data string) error {
 		return err
 	}
 
-	j.runData <- observedValue
-	j.logger.Infoln("Observed value sucessfully consumed")
+	select {
+	case j.runData <- observedValue:
+	default:
+	}
 
 	return nil
 }
@@ -318,6 +320,7 @@ var (
 // actions like database access, once the context passed has expired.
 func (j *job) Observe(ctx context.Context) (*big.Int, error) {
 	j.logger.Infoln("Observe triggered")
+	ts := time.Now()
 
 	go func() {
 		if err := j.client.TriggerJob(j.jobID); err != nil {
@@ -332,11 +335,11 @@ func (j *job) Observe(ctx context.Context) (*big.Int, error) {
 			return nil, ErrJobStopped
 		}
 
-		j.logger.WithField("data", result.String()).Infoln("Observation received")
+		j.logger.WithField("data", result.String()).Infoln("Observation received in", time.Since(ts))
 		return result, nil
 
 	case <-ctx.Done():
-		j.logger.WithError(ctx.Err()).Warningln("Observation timed out")
+		j.logger.WithError(ctx.Err()).Warningln("Observation timed out in", time.Since(ts))
 		return nil, ErrObserveTimeout
 	}
 }

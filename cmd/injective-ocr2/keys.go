@@ -233,11 +233,11 @@ func initP2PKey(
 
 		// check that if P2P Key ID was specified separately, it must match the provided privkey
 		if len(*p2pPeerID) > 0 {
-			specPeerID := strings.ToLower(*p2pPeerID)
-			specPeerID = strings.TrimPrefix(specPeerID, "0x")
+			peerIDSpec, err := peer.Decode(*p2pPeerID)
+			orFatal(errors.Wrap(err, "failed to decode peer ID - must be a valid CID of a key or a raw multihash"))
 
-			if peerID != p2pkey.PeerID(specPeerID) {
-				err = errors.Errorf("expected P2P Key ID %s but got %s from the private key", specPeerID, peerID)
+			if peer.ID(peerID) != peerIDSpec {
+				err = errors.Errorf("expected P2P Key ID %s but got %s from the private key", peerIDSpec, peer.ID(peerID))
 				return "", p2pkey.Key{}, err
 			}
 		}
@@ -245,29 +245,28 @@ func initP2PKey(
 		return peerID, key, nil
 
 	case len(*p2pPeerID) > 0:
-		specPeerID := strings.ToLower(*p2pPeerID)
-		specPeerID = strings.TrimPrefix(specPeerID, "0x")
-		if _, err := hex.DecodeString(specPeerID); err != nil {
-			return "", p2pkey.Key{}, err
-		}
+		peerIDSpec, err := peer.Decode(*p2pPeerID)
+		orFatal(errors.Wrap(err, "failed to decode peer ID - must be a valid CID of a key or a raw multihash"))
 
-		ocrFileEnc, err := ioutil.ReadFile(filepath.Join(*p2pKeyringDir, specPeerID+"_peer.json"))
+		keyFileName := fmt.Sprintf("%s_p2p.json", peerIDSpec.Pretty())
+
+		p2pFileEnc, err := ioutil.ReadFile(filepath.Join(*p2pKeyringDir, keyFileName))
 		if err != nil {
 			return "", p2pkey.Key{}, err
 		}
 
-		key, err = p2pkey.FromEncryptedJSON(ocrFileEnc, *p2pKeyPassphrase)
+		key, err = p2pkey.FromEncryptedJSON(p2pFileEnc, *p2pKeyPassphrase)
 		if err != nil {
 			return "", p2pkey.Key{}, err
 		}
 
-		peerID = key.MustGetPeerID()
-		if peerID != p2pkey.PeerID(specPeerID) {
-			err = errors.Errorf("expected P2P Peer ID %s but got %s from the encrypted P2P key file", specPeerID, peerID)
+		peerID := peer.ID(key.MustGetPeerID())
+		if peerIDSpec != peerID {
+			err = errors.Errorf("expected P2P Peer ID %s but got %s from the encrypted P2P key file", peerIDSpec, peerID)
 			return "", p2pkey.Key{}, err
 		}
 
-		return peerID, key, nil
+		return key.MustGetPeerID(), key, nil
 
 	default:
 		err := errors.New("insufficient P2P key details provided")

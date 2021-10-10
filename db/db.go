@@ -241,18 +241,18 @@ func (d *jobDBService) ensureIndex() {
 
 	_, _ = d.contractConfigCollection().Indexes().CreateMany(context.TODO(), []mongo.IndexModel{
 		dbconn.MakeIndex(true, bson.D{{"jobId", 1}}),
-		dbconn.MakeIndex(true, bson.D{{"configDigest", 1}}),
+		dbconn.MakeIndex(true, bson.D{{"jobId", 1}, {"configDigest", 1}}),
 	})
 
 	_, _ = d.pendingTransmissionCollection().Indexes().CreateMany(context.TODO(), []mongo.IndexModel{
-		dbconn.MakeIndex(true, bson.D{{"jobId", 1}}),
+		dbconn.MakeIndex(false, bson.D{{"jobId", 1}}),
 		dbconn.MakeIndex(false, bson.D{{"configDigest", 1}}),
 		dbconn.MakeIndex(true, bson.D{{"reportTimestamp.epoch", 1}, {"reportTimestamp.round", 1}}),
 		dbconn.MakeIndex(false, bson.D{{"tx.createdAt", 1}}),
 	})
 
 	_, _ = d.peerAnnouncementCollection().Indexes().CreateMany(context.TODO(), []mongo.IndexModel{
-		dbconn.MakeIndex(true, bson.D{{"jobId", 1}}),
+		dbconn.MakeIndex(false, bson.D{{"jobId", 1}}),
 		dbconn.MakeIndex(true, bson.D{{"jobId", 1}, {"peerId", 1}}),
 	})
 }

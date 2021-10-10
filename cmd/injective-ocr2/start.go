@@ -163,6 +163,10 @@ func startCmd(cmd *cli.Cmd) {
 		// ensure a clean exit
 		defer closer.Close()
 
+		closer.Bind(func() {
+			log.Infoln("Oracle exited")
+		})
+
 		startMetricsGathering(
 			statsdPrefix,
 			statsdAddr,
@@ -222,6 +226,8 @@ func startCmd(cmd *cli.Cmd) {
 		// Setup MongoDB database connection
 		//
 
+		log.Infoln("Connecting for MongoDB")
+
 		dbConnContext, cancelFn := context.WithTimeout(context.Background(), 20*time.Second)
 		dbConn, err := dbconn.NewMongoConn(dbConnContext, &dbconn.MongoConfig{
 			Connection: *dbMongoConnection,
@@ -247,6 +253,8 @@ func startCmd(cmd *cli.Cmd) {
 		closer.Bind(func() {
 			dbSvc.Close()
 		})
+
+		log.Infoln("Successfully connected to MongoDB")
 
 		// Init Chainlink Node Webhook client
 		//
@@ -345,6 +353,10 @@ func startCmd(cmd *cli.Cmd) {
 				os.Exit(1)
 			}
 		}()
+
+		closer.Bind(func() {
+			log.Infoln("Initiated app exit")
+		})
 
 		closer.Hold()
 	}

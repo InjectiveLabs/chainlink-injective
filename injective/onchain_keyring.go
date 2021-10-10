@@ -49,7 +49,15 @@ func (c *InjectiveModuleOnchainKeyring) Verify(
 	report types.Report,
 	signature []byte,
 ) bool {
-	pubKey, err := ethsecp256k1.RecoverPubkey([]byte(report), signature)
+	sigData := (&chaintypes.ReportToSign{
+		ConfigDigest: reportCtx.ConfigDigest[:],
+		Epoch:        uint64(reportCtx.Epoch),
+		Round:        uint64(reportCtx.Round),
+		ExtraHash:    reportCtx.ExtraHash[:],
+		Report:       []byte(report),
+	}).Digest()
+
+	pubKey, err := ethsecp256k1.RecoverPubkey(sigData, signature)
 	if err != nil {
 		return false
 	}
@@ -59,11 +67,11 @@ func (c *InjectiveModuleOnchainKeyring) Verify(
 		return false
 	}
 
-	signerAccBytes := (&secp256k1.PubKey{
+	signerAccAddress := sdk.AccAddress((&secp256k1.PubKey{
 		Key: ethcrypto.CompressPubkey(ecPubKey),
-	}).Address().Bytes()
+	}).Address().Bytes())
 
-	return bytes.Equal(signerAccBytes, acc)
+	return bytes.Equal(signerAccAddress.Bytes(), acc)
 }
 
 // Maximum length of a signature

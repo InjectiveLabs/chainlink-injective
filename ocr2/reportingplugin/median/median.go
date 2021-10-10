@@ -89,7 +89,7 @@ func (fac NumericalMedianFactory) NewReportingPlugin(
 
 	logger := loghelper.MakeRootLoggerWithContext(fac.Logger).MakeChild(commontypes.LogFields{
 		"configDigest":    configuration.ConfigDigest,
-		"reportingPlugin": "NumericalMedian",
+		"reportingPlugin": "NumericalMedianCosmos",
 	})
 
 	plugin := &numericalMedian{
@@ -104,7 +104,7 @@ func (fac NumericalMedianFactory) NewReportingPlugin(
 	}
 
 	pluginInfo := types.ReportingPluginInfo{
-		Name: "NumericalMedian",
+		Name: "NumericalMedianCosmos",
 
 		UniqueReports: false,
 

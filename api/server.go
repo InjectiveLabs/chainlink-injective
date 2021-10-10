@@ -144,7 +144,7 @@ func (s *httpServer) handleJobCreate() gin.HandlerFunc {
 }
 
 type JobRunRequest struct {
-	JobID  string `json:"jobId"`
+	JobID  string `json:"jobID"`
 	Result string `json:"result"`
 }
 
@@ -195,7 +195,7 @@ func (s *httpServer) handleJobStop() gin.HandlerFunc {
 			return
 		}
 
-		c.JSON(http.StatusCreated, JobHandleResponse{
+		c.JSON(http.StatusOK, JobHandleResponse{
 			ID: jobID,
 		})
 	}

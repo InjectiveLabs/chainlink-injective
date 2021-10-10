@@ -175,8 +175,6 @@ func (msg MsgTransmit) ValidateBasic() error {
 		return sdkerrors.Wrap(ErrIncorrectTransmissionData, "too many observers")
 	} else if len(msg.Report.Observations) != len(msg.Report.Observers) {
 		return sdkerrors.Wrap(ErrIncorrectTransmissionData, "wrong observations count")
-	} else if len(msg.Signatures) != len(msg.Report.Observers) {
-		return sdkerrors.Wrap(ErrIncorrectTransmissionData, "wrong signatures count")
 	}
 
 	if len(msg.Report.Observations) > MaxNumOracles {

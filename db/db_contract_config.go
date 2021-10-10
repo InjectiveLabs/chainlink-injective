@@ -36,7 +36,7 @@ func (d *jobDBService) SetContractConfig(
 	_, err := d.contractConfigCollection().UpdateOne(dbCtx, filter, upd, opts)
 	if err != nil {
 		metrics.ReportFuncError(d.svcTags)
-		err = errors.Wrap(err, "failed to upsert a document")
+		err = errors.Wrap(err, "failed to update a document")
 		return err
 	}
 
