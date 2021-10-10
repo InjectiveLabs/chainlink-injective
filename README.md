@@ -131,12 +131,7 @@ Run migrations with:
 
 ```bash
 > make test
-```
 
-According to this source, the proposal will set a config for both feeds (`LINK/USDC`, `INJ/USDC`) and authrize our test oracle to sign and transmit later:
-https://github.com/InjectiveLabs/chainlink-injective/blob/9cc92dc9a4196348c56f10720170c405fe6b082d/test/e2e/ocr_configs.go#L31-L48
-
-```
 Running Suite: Injective/Cosmos OCR module E2E Test Suite
 =========================================================
 Random Seed: 1633702647
@@ -159,6 +154,8 @@ Ran 1 of 1 Specs in 18.327 seconds
 SUCCESS! -- 1 Passed | 0 Failed | 0 Pending | 0 Skipped
 PASS
 ```
+
+The created proposals will set a config for both feeds (LINK/USDC, INJ/USDC) and authrize our test oracles to sign and transmit reports onchain.
 
 ### Verifying on-chain state
 
