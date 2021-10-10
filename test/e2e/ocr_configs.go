@@ -17,8 +17,6 @@ import (
 	ocrtypes "github.com/smartcontractkit/libocr/offchainreporting/types"
 )
 
-const OracleTestAddress = "inj128jwakuw3wrq6ye7m4p64wrzc5rfl8tvwzc6s8"
-
 var _ = Describe("OCR Feed Configs", func() {
 	_ = Describe("Proposals to set configs", func() {
 		clientCtx := map[string]client.Context{
@@ -29,8 +27,8 @@ var _ = Describe("OCR Feed Configs", func() {
 		}
 
 		pairs := [][2]string{
-			{"LINK", "USDT"},
-			{"INJ", "USDT"},
+			{"LINK", "USDC"},
+			{"INJ", "USDC"},
 		}
 
 		proposals := make([]govtypes.Content, 0, len(pairs))
@@ -45,9 +43,19 @@ var _ = Describe("OCR Feed Configs", func() {
 				Title:       fmt.Sprintf("SetConfig Proposal for %s/%s", pair[0], pair[1]),
 				Description: "Grants transmitter/signer privileges and sets feed config",
 				Config: &chaintypes.FeedConfig{
-					Signers:      []string{OracleTestAddress},
-					Transmitters: []string{OracleTestAddress},
-					F:            1,
+					Signers: []string{
+						getAddressOrFail("oracle0").String(),
+						getAddressOrFail("oracle1").String(),
+						getAddressOrFail("oracle2").String(),
+						getAddressOrFail("oracle3").String(),
+					},
+					Transmitters: []string{
+						getAddressOrFail("oracle0").String(),
+						getAddressOrFail("oracle1").String(),
+						getAddressOrFail("oracle2").String(),
+						getAddressOrFail("oracle3").String(),
+					},
+					F: 1,
 					OnchainConfig: &chaintypes.OnchainConfig{
 						FeedId:              feedId,
 						MinAnswer:           sdk.SmallestDec(),
@@ -96,7 +104,10 @@ func makeFastChainOffchainConfig() []byte {
 	orFail(err)
 
 	sharedSecretEncryptionPublicKeys := []ocrtypes.SharedSecretEncryptionPublicKey{
-		fromHex32("376f1e7c6dcc5248fcf439471dc00bacdd195275d07fbd3245c2d941eec2e91e"),
+		fromHex32("2f70f0dda48830c8bcbe465cf3f5b5712a2abf5b1753e9116246a3f67d29b61b"),
+		fromHex32("15acff142c476a20769bdffc28c32414a0c75cd1769c26b683804fd5f163a852"),
+		fromHex32("7d18b47f02293cc9ef3746e593bda0ee3aed6cf70943a585213c7c33fa77d314"),
+		fromHex32("419c1a2fe81f0ce832cf471e7c294daf7479ec9f9a1ce935ab27eaeafd348876"),
 	}
 
 	// expected to be shared only with oracles in a super secret private chat I guess
@@ -111,38 +122,40 @@ func makeFastChainOffchainConfig() []byte {
 		cryptorand.Reader,
 	)
 
+	// See https://research.chain.link/ocr.pdf
+	// for the reference on protocol variables
+	//
 	config := &ocrconfig.OffchainConfig{
 		DeltaStage:    uint64(5 * time.Second),
 		DeltaRound:    uint64(5 * time.Second),
 		DeltaProgress: uint64(8 * time.Second),
 		DeltaResend:   uint64(5 * time.Second),
-		DeltaGrace:    uint64(2500 * time.Millisecond),
+		DeltaGrace:    uint64(3 * time.Second),
 
 		RMax: 254,
 		S: []uint32{
-			1,
+			1, 1, 1, 1,
 		},
 		OffchainPublicKeys: [][]byte{
-			// Loaded OCRKeyV2{ID: f7b80d092a4c328ef52508d2cef17f4f31d16293729e19c62f9ad6cb59a961a0}
-			// {
-			// 	"keyType": "OCR",
-			// 	"id": "f7b80d092a4c328ef52508d2cef17f4f31d16293729e19c62f9ad6cb59a961a0",
-			// 	"offChainPublicKey": "ocroff_4d203a02f68441df3ce8a8678f5c8d2a9628df25bb9d98d4425db25c29df3422",
-			// 	"configPublicKey": "ocrcfg_376f1e7c6dcc5248fcf439471dc00bacdd195275d07fbd3245c2d941eec2e91e"
-			// }
-			fromHex("4d203a02f68441df3ce8a8678f5c8d2a9628df25bb9d98d4425db25c29df3422"),
+			fromHex("35c5877d26acddadb4d915edfb5c66a427a3ced8328292159afc90980d145c5c"),
+			fromHex("c863ac73bc720c79b34cb053d81a9bdf2c7094f7314ff32e6ca6ea7519da220a"),
+			fromHex("b73208d0b23f82c20b10ef659bffcea7137e404ce31cf44cf7e6656b06c6ebd2"),
+			fromHex("6a125a2236905c16615977b6d0b059b19857d5fa10d252e85f9f58078a02470a"),
 		},
 		PeerIds: []string{
-			"12D3KooWPaHvunmPm3qjhsffgZBd2rQS4tdCgSYWEeRiX6hDsrdq",
+			"12D3KooWEoy4KrP3uwd4uZmDFBfKur2F5zSNTVMSwymQ9iNCFt7Z",
+			"12D3KooWHgoKkzaNGKYK39PMjyH3tPBx1iDHmEHzrBCmuKhn4C8F",
+			"12D3KooWJLRX7N1aP1XSS7vHzireeBcs7m9Kv321FqXCCPcwB2P2",
+			"12D3KooWT2mPa5onqXGkicvaQUHSW6d6AVWc5CLqxMSQTfQCDgcq",
 		},
 
 		ReportingPluginConfig: medianPluginConfigBytes,
 
-		MaxDurationQuery:                        uint64(250 * time.Millisecond),
-		MaxDurationObservation:                  uint64(250 * time.Millisecond),
-		MaxDurationReport:                       uint64(250 * time.Millisecond),
-		MaxDurationShouldAcceptFinalizedReport:  uint64(250 * time.Millisecond),
-		MaxDurationShouldTransmitAcceptedReport: uint64(250 * time.Millisecond),
+		MaxDurationQuery:                        uint64(3 * time.Second),
+		MaxDurationObservation:                  uint64(3 * time.Second),
+		MaxDurationReport:                       uint64(3 * time.Second),
+		MaxDurationShouldAcceptFinalizedReport:  uint64(3 * time.Second),
+		MaxDurationShouldTransmitAcceptedReport: uint64(3 * time.Second),
 
 		SharedSecretEncryptions: sharedSecretEncryptions.Proto(),
 	}

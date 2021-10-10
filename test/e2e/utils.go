@@ -76,6 +76,17 @@ func fromHex32(h string) (bytes32 [32]byte) {
 	return bytes32
 }
 
+func getAddressOrFail(name string) cosmtypes.AccAddress {
+	for _, a := range CosmosAccounts {
+		if a.Name == name {
+			return a.CosmosAccAddress
+		}
+	}
+
+	orFail(errors.Errorf("unable to load Cosmos Account for: %s", name))
+	return nil
+}
+
 func waitForService(ctx context.Context, conn *grpc.ClientConn) error {
 	t := time.NewTimer(1 * time.Second)
 	for {

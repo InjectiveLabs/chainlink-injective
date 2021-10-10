@@ -2,6 +2,8 @@
 
 source ./test/scripts/common.sh
 
+set -e
+
 echo "Adding Bridge '$1' ($2) to Chainlink node"
 
 CL_URL="http://localhost:6688"
@@ -12,7 +14,7 @@ payload=$(
   cat <<EOF
 {
 "name": "$1",
-"url": "$2"
+"url": "$2/runs"
 }
 EOF
 )

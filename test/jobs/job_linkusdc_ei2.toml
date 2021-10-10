@@ -1,0 +1,15 @@
+type            = "webhook"
+schemaVersion   = 1
+
+externalInitiators = [
+  { name = "injective-ei2", spec = "{\"feedId\": \"LINK/USDC\",\"p2pBootstrapPeers\": [\"12D3KooWEoy4KrP3uwd4uZmDFBfKur2F5zSNTVMSwymQ9iNCFt7Z@127.0.0.1:4466\"],\"isBootstrapPeer\": false,\"keyID\": \"92e562901f3af2ae7057e5d80d47597ba3ab140c17c835b2216458678fc1fd1f\",\"observationTimeout\": \"10s\",\"blockchainTimeout\": \"10s\",\"contractConfigConfirmations\": 1}" }
+]
+
+observationSource   = """
+   ticker [type=http method=GET url="https://api.binance.com/api/v3/ticker/price?symbol=LINKUSDC"];
+   parsePrice [type="jsonparse" path="price"]
+   multiplyDecimals [type="multiply" times=1000000]
+   sendToBridge [type=bridge name="injective-ea2" requestData=<{"jobID":$(jobSpec.externalJobID), "result":$(multiplyDecimals)}>]
+
+   ticker -> parsePrice -> multiplyDecimals -> sendToBridge
+"""

@@ -14,12 +14,11 @@ CHAIN_ID="${CHAIN_ID:-injective-1}"
 CHAIN_DIR="${CHAIN_DIR:-$CWD/var/data}"
 DENOM="${DENOM:-inj}"
 
-# USDT ERC20 Token by default
-TEST_ERC20_DENOM="${TEST_ERC20_DENOM:-peggy0x69efCB62D98f4a6ff5a0b0CFaa4AAbB122e85e08}"
-TEST_ERC20_DECIMALS="${TEST_ERC20_DECIMALS:-000000}"
+TEST_USDC_DENOM="${TEST_USDC_DENOM:-peggy0xc83DCEA3Ec44b7D3Ec70690BAb1e6292A80e6DC3}"
+TEST_USDC_DECIMALS="${TEST_USDC_DECIMALS:-000000}"
 
-TEST_USDC_DENOM="peggy0xc83DCEA3Ec44b7D3Ec70690BAb1e6292A80e6DC3"
-TEST_LINK_DENOM="peggy0x514910771AF9Ca656af840dff83E8264EcF986CA"
+TEST_LINK_DENOM="${TEST_LINK_DENOM:-peggy0x514910771AF9Ca656af840dff83E8264EcF986CA}"
+TEST_LINK_DECIMALS="${TEST_LINK_DECIMALS:-000000000000000000}"
 
 STAKE_DENOM="${STAKE_DENOM:-$DENOM}"
 CLEANUP="${CLEANUP:-0}"
@@ -28,15 +27,26 @@ SCALE_FACTOR="${SCALE_FACTOR:-000000000000000000}"
 
 # Default 3 account keys + 1 user key with no special grants
 VAL0_KEY="val"
-VAL0_MNEMONIC=$(echo "$(grep VAL0_MNEMONIC .env | cut -d '=' -f2)" | tr -d '"')
+VAL0_MNEMONIC="remember huge castle bottom apology smooth avocado ceiling tent brief detect poem"
 VAL1_KEY="val"
-VAL1_MNEMONIC=$(echo "$(grep VAL1_MNEMONIC .env | cut -d '=' -f2)" | tr -d '"')
+VAL1_MNEMONIC="capable dismiss rice income open wage unveil left veteran treat vast brave"
 VAL2_KEY="val"
-VAL2_MNEMONIC=$(echo "$(grep VAL2_MNEMONIC .env | cut -d '=' -f2)" | tr -d '"')
+VAL2_MNEMONIC="jealous wrist abstract enter erupt hunt victory interest aim defy camp hair"
+
 USER0_KEY="user0"
-USER0_MNEMONIC=$(echo "$(grep USER0_MNEMONIC .env | cut -d '=' -f2)" | tr -d '"')
+USER0_MNEMONIC="divide report just assist salad peanut depart song voice decide fringe stumble"
 USER1_KEY="user1"
-USER1_MNEMONIC=$(echo "$(grep USER1_MNEMONIC .env | cut -d '=' -f2)" | tr -d '"')
+USER1_MNEMONIC="physical page glare junk return scale subject river token door mirror title"
+
+ORACLE0_KEY="oracle0"
+ORACLE0_MNEMONIC="bullet primary spider betray doctor truly cigar bulb whale bargain fence marble"
+ORACLE1_KEY="oracle1"
+ORACLE1_MNEMONIC="always impulse hobby nasty width find canyon grant juice doll scout inherit"
+ORACLE2_KEY="oracle2"
+ORACLE2_MNEMONIC="gloom kick buffalo long cruel refuse bind rather quiz chicken deer sausage"
+ORACLE3_KEY="oracle3"
+ORACLE3_MNEMONIC="science rabbit damp acquire clock oven february heavy path meat act essence"
+
 NEWLINE=$'\n'
 
 hdir="$CHAIN_DIR/$CHAIN_ID"
@@ -124,7 +134,9 @@ if [[ ! -d "$hdir" ]]; then
 	else
 		coins="1000000$SCALE_FACTOR$DENOM"
 	fi
-	coins_user="10000000$SCALE_FACTOR$DENOM,10000000000$TEST_ERC20_DECIMALS$TEST_ERC20_DENOM,10000000000$TEST_ERC20_DECIMALS$TEST_USDC_DENOM,10000000$SCALE_FACTOR$TEST_LINK_DENOM"
+
+	coins_user="10000000$SCALE_FACTOR$DENOM,10000000000$TEST_USDC_DECIMALS$TEST_USDC_DENOM,10000000$TEST_LINK_DECIMALS$TEST_LINK_DENOM"
+	coins_oracle="10000000$SCALE_FACTOR$DENOM" # only for gas
 
 	echo "initializing node homes..."
 
@@ -151,19 +163,34 @@ if [[ ! -d "$hdir" ]]; then
 	yes "$USER1_MNEMONIC$NEWLINE" | $NODE_BIN $home1 keys add $USER1_KEY $kbt --recover &>/dev/null
 	yes "$USER1_MNEMONIC$NEWLINE" | $NODE_BIN $home2 keys add $USER1_KEY $kbt --recover &>/dev/null
 
-  echo "Importing keys for additional accounts"
-  yes $PASSPHRASE | $($NODE_BIN $home0 keys unsafe-import-eth-key oracle $(grep TEST_KEY_ORACLE .env | cut -d '=' -f2))
+	yes "$ORACLE0_MNEMONIC$NEWLINE" | $NODE_BIN $home0 keys add $ORACLE0_KEY $kbt --recover
+	yes "$ORACLE0_MNEMONIC$NEWLINE" | $NODE_BIN $home1 keys add $ORACLE0_KEY $kbt --recover &>/dev/null
+	yes "$ORACLE0_MNEMONIC$NEWLINE" | $NODE_BIN $home2 keys add $ORACLE0_KEY $kbt --recover &>/dev/null
+
+	yes "$ORACLE1_MNEMONIC$NEWLINE" | $NODE_BIN $home0 keys add $ORACLE1_KEY $kbt --recover
+	yes "$ORACLE1_MNEMONIC$NEWLINE" | $NODE_BIN $home1 keys add $ORACLE1_KEY $kbt --recover &>/dev/null
+	yes "$ORACLE1_MNEMONIC$NEWLINE" | $NODE_BIN $home2 keys add $ORACLE1_KEY $kbt --recover &>/dev/null
+
+	yes "$ORACLE2_MNEMONIC$NEWLINE" | $NODE_BIN $home0 keys add $ORACLE2_KEY $kbt --recover
+	yes "$ORACLE2_MNEMONIC$NEWLINE" | $NODE_BIN $home1 keys add $ORACLE2_KEY $kbt --recover &>/dev/null
+	yes "$ORACLE2_MNEMONIC$NEWLINE" | $NODE_BIN $home2 keys add $ORACLE2_KEY $kbt --recover &>/dev/null
+
+	yes "$ORACLE3_MNEMONIC$NEWLINE" | $NODE_BIN $home0 keys add $ORACLE3_KEY $kbt --recover
+	yes "$ORACLE3_MNEMONIC$NEWLINE" | $NODE_BIN $home1 keys add $ORACLE3_KEY $kbt --recover &>/dev/null
+	yes "$ORACLE3_MNEMONIC$NEWLINE" | $NODE_BIN $home2 keys add $ORACLE3_KEY $kbt --recover &>/dev/null
 
 	# Add addresses to genesis
 	$NODE_BIN $home0 add-genesis-account $($NODE_BIN $home0 keys show $VAL0_KEY -a $kbt) $coins &>/dev/null
 	$NODE_BIN $home0 add-genesis-account $($NODE_BIN $home1 keys show $VAL1_KEY -a $kbt) $coins &>/dev/null
 	$NODE_BIN $home0 add-genesis-account $($NODE_BIN $home2 keys show $VAL2_KEY -a $kbt) $coins &>/dev/null
+
 	$NODE_BIN $home0 add-genesis-account $($NODE_BIN $home0 keys show $USER0_KEY -a $kbt) $coins_user &>/dev/null
 	$NODE_BIN $home0 add-genesis-account $($NODE_BIN $home0 keys show $USER1_KEY -a $kbt) $coins_user &>/dev/null
 
-  # Add addresses for additional keys to genesis
-  echo "Adding the additional accounts to genesis"
-  yes $PASSPHRASE | $NODE_BIN $home0 add-genesis-account $(yes $PASSPHRASE | $NODE_BIN $home0 keys show oracle -a) $coins_user
+	$NODE_BIN $home0 add-genesis-account $($NODE_BIN $home0 keys show $ORACLE0_KEY -a $kbt) $coins_oracle &>/dev/null
+	$NODE_BIN $home0 add-genesis-account $($NODE_BIN $home0 keys show $ORACLE1_KEY -a $kbt) $coins_oracle &>/dev/null
+	$NODE_BIN $home0 add-genesis-account $($NODE_BIN $home0 keys show $ORACLE2_KEY -a $kbt) $coins_oracle &>/dev/null
+	$NODE_BIN $home0 add-genesis-account $($NODE_BIN $home0 keys show $ORACLE3_KEY -a $kbt) $coins_oracle &>/dev/null
 
 	# Patch genesis.json to better configure stuff for testing purposes
 	if [[ "$STAKE_DENOM" == "$DENOM" ]]; then

@@ -1,13 +1,9 @@
 package e2e
 
 import (
-	"bufio"
 	"bytes"
 	"crypto/rand"
 	"encoding/hex"
-	"io/ioutil"
-	"os"
-	"strings"
 
 	chainclient "github.com/InjectiveLabs/sdk-go/chain/client"
 	"github.com/InjectiveLabs/sdk-go/chain/crypto/ethsecp256k1"
@@ -20,7 +16,6 @@ import (
 	cosmtypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/pkg/errors"
 	rpchttp "github.com/tendermint/tendermint/rpc/client/http"
-	log "github.com/xlab/suplog"
 
 	ctypes "github.com/InjectiveLabs/sdk-go/chain/types"
 )
@@ -33,13 +28,7 @@ const (
 	injCoinDecimals          = 18
 )
 
-var (
-// initialCommunityPoolBalance  = cosmtypes.NewInt(3_000_000).Mul(cosmtypes.NewInt(1e18))
-)
-
 func init() {
-	readEnv()
-
 	config := cosmtypes.GetConfig()
 	ctypes.SetBech32Prefixes(config)
 	ctypes.SetBip44CoinType(config)
@@ -50,32 +39,18 @@ func init() {
 	}
 }
 
-// readEnv is a special utility that reads `.env` file into actual environment variables
-// of the current app, similar to `dotenv` Node package.
-func readEnv() {
-	if envdata, _ := ioutil.ReadFile(".env"); len(envdata) > 0 {
-		s := bufio.NewScanner(bytes.NewReader(envdata))
-		for s.Scan() {
-			txt := s.Text()
-			valIdx := strings.IndexByte(txt, '=')
-			if valIdx < 0 {
-				continue
-			}
-
-			strValue := strings.Trim(txt[valIdx+1:], `"`)
-			if err := os.Setenv(txt[:valIdx], strValue); err != nil {
-				log.WithField("name", txt[:valIdx]).WithError(err).Warningln("failed to override ENV variable")
-			}
-		}
-	}
-}
-
 var CosmosAccounts = []Account{
 	{Name: "validator1", Mnemonic: "remember huge castle bottom apology smooth avocado ceiling tent brief detect poem"},
 	{Name: "validator2", Mnemonic: "capable dismiss rice income open wage unveil left veteran treat vast brave"},
 	{Name: "validator3", Mnemonic: "jealous wrist abstract enter erupt hunt victory interest aim defy camp hair"},
+
 	{Name: "user1", Mnemonic: "divide report just assist salad peanut depart song voice decide fringe stumble"},
 	{Name: "user2", Mnemonic: "physical page glare junk return scale subject river token door mirror title"},
+
+	{Name: "oracle0", Mnemonic: "bullet primary spider betray doctor truly cigar bulb whale bargain fence marble"},
+	{Name: "oracle1", Mnemonic: "always impulse hobby nasty width find canyon grant juice doll scout inherit"},
+	{Name: "oracle2", Mnemonic: "gloom kick buffalo long cruel refuse bind rather quiz chicken deer sausage"},
+	{Name: "oracle3", Mnemonic: "science rabbit damp acquire clock oven february heavy path meat act essence"},
 }
 
 func getSigningKeys(accounts ...Account) []cryptotypes.PrivKey {
@@ -94,6 +69,16 @@ func getKeyrings(accounts ...Account) map[string]keyring.Keyring {
 	}
 
 	return keyrings
+}
+
+func getAddress(name string) (cosmtypes.AccAddress, bool) {
+	for _, a := range CosmosAccounts {
+		if a.Name == name {
+			return a.CosmosAccAddress, true
+		}
+	}
+
+	return nil, false
 }
 
 func getClientContext(from ...string) client.Context {

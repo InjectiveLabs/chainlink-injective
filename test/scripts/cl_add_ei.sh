@@ -2,6 +2,8 @@
 
 source ./test/scripts/common.sh
 
+set -e
+
 echo "Adding External Initiator '$1' ($2) to Chainlink node..."
 
 CL_URL="http://localhost:6688"
