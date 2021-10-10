@@ -26,46 +26,70 @@ Install Docker. Run Chainlink Node and its Web UI
 > docker logs -f test_chainlink-node_1
 ```
 
+The credentials for Chainlink Web UI are following:
+```
+username: test@test
+password: test_test
+```
+
 ### Step 4
 
-Add external adapter bridge (or using Web UI / CLI):
+Add external adapters bridges (or using Web UI / CLI) for all 4 oracles:
 
 ```bash
-> ./test/scripts/cl_add_bridge.sh injective-ea http://host.docker.internal:8866
+> ./test/test_init_bridges.sh
 
-Adding Bridge 'injective-ea' (http://host.docker.internal:8866) to Chainlink node
+Adding Bridge 'injective-ea0' (http://host.docker.internal:8866) to Chainlink node
 Bridge has been added to Chainlink node
-Done adding Bridge 'injective-ea'
+Done adding Bridge 'injective-ea0'
+
+Adding Bridge 'injective-ea1' (http://host.docker.internal:8867) to Chainlink node
+Bridge has been added to Chainlink node
+Done adding Bridge 'injective-ea1'
+
+Adding Bridge 'injective-ea2' (http://host.docker.internal:8868) to Chainlink node
+Bridge has been added to Chainlink node
+Done adding Bridge 'injective-ea2'
+
+Adding Bridge 'injective-ea3' (http://host.docker.internal:8869) to Chainlink node
+Bridge has been added to Chainlink node
+Done adding Bridge 'injective-ea3'
 ```
 
 ### Step 5
 
 According to [Adding External Initiators to Nodes](https://docs.chain.link/docs/external-initiators-in-nodes/), let's add our OCR2 oracle as an external initiator to the Chainlink Node.
-This can be achieved using a CLI tool, but there is a quicker script:
+This can be achieved using a CLI tool, but there is a quicker script that uses the API. 
 
 ```bash
-> ./test/scripts/cl_add_ei.sh injective http://host.docker.internal:8866
+> ./test/test_init_eis.sh
 
-Adding External Initiator 'injective' (http://host.docker.internal:8866) to Chainlink node...
+Adding External Initiator 'injective-ei0' (http://host.docker.internal:8866) to Chainlink node...
 EI has been added to Chainlink node
-Done adding EI 'injective'
+Done adding EI 'injective-ei0'
+
+Adding External Initiator 'injective-ei1' (http://host.docker.internal:8867) to Chainlink node...
+EI has been added to Chainlink node
+Done adding EI 'injective-ei1'
+
+Adding External Initiator 'injective-ei2' (http://host.docker.internal:8868) to Chainlink node...
+EI has been added to Chainlink node
+Done adding EI 'injective-ei2'
+
+Adding External Initiator 'injective-ei3' (http://host.docker.internal:8869) to Chainlink node...
+EI has been added to Chainlink node
+Done adding EI 'injective-ei3'
 ```
 
-Don't forget to copy the generated credentials to `.env` of chainlink-injective (see next steps):
-```bash
-> cat external_initiator_injective.env
-
-EI_CI_ACCESSKEY=OFBujjXMeF1+uBTuUilZC4SHOExRoR6lEORa4bwusSHzp4jDGWFuzTj4ocC5GkXG
-EI_CI_SECRET=TU4EAMy8AirTWPHaYa/KBN6Vao3XrJPsq+5FC79RZ2/TU7L1W3laNr5UbRQMIeQR
-EI_IC_ACCESSKEY=670f81fa23b344e980993531c75474e4
-EI_IC_SECRET=yM1ZMawqm8VcHv788Cin4QN10Sz4flPMlldyr9HROYpBBNRQWqxKSRogWo+E2TWM
+It will save 4 generated files with CI/IC credentials into
+```
+./test/oracles/oracle0/external_initiator_injective-ei0.env
+./test/oracles/oracle0/external_initiator_injective-ei1.env
+./test/oracles/oracle0/external_initiator_injective-ei2.env
+./test/oracles/oracle0/external_initiator_injective-ei3.env
 ```
 
-Copy `.env.example` to `.env` and fill the Chainlink Node CI and IC secrets! Make sure `EI_CI_LISTEN_ADDR` is available and `EI_CHAINLINKURL` points to your Chainlink Node correctly.
-
-```bash
-> cat external_initiator_injective.env >> .env
-```
+Later they will be loaded by `test_oracles_start.sh` script.
 
 ### Running a network with 3-node consensus
 
@@ -109,34 +133,31 @@ Run migrations with:
 > make test
 ```
 
-According to this source, the proposal will set a config for both feeds (`LINK/USDT`, `INJ/USDT`) and authrize our test oracle to sign and transmit later:
+According to this source, the proposal will set a config for both feeds (`LINK/USDC`, `INJ/USDC`) and authrize our test oracle to sign and transmit later:
 https://github.com/InjectiveLabs/chainlink-injective/blob/9cc92dc9a4196348c56f10720170c405fe6b082d/test/e2e/ocr_configs.go#L31-L48
 
 ```
 Running Suite: Injective/Cosmos OCR module E2E Test Suite
 =========================================================
-Random Seed: 1631772922
+Random Seed: 1633702647
 Will run 1 of 1 specs
 
 OCR Feed Configs Proposals to set configs
-  Submits Governance Proposals
-  /Users/xlab/Documents/dev/InjectiveLabs/chainlink-injective/test/e2e/ocr_configs.go:50
+  Submits Governance Proposals and Funds Feed Reward Pool
+  /Users/xlab/Documents/dev/InjectiveLabs/chainlink-injective/test/e2e/ocr_configs.go:81
 
-• [SLOW TEST:6.410 seconds]
+• [SLOW TEST:18.322 seconds]
 OCR Feed Configs
-/Users/xlab/Documents/dev/InjectiveLabs/chainlink-injective/test/e2e/ocr_configs.go:14
+/Users/xlab/Documents/dev/InjectiveLabs/chainlink-injective/test/e2e/ocr_configs.go:20
   Proposals to set configs
-  /Users/xlab/Documents/dev/InjectiveLabs/chainlink-injective/test/e2e/ocr_configs.go:15
-    Submits Governance Proposals
-    /Users/xlab/Documents/dev/InjectiveLabs/chainlink-injective/test/e2e/ocr_configs.go:50
+  /Users/xlab/Documents/dev/InjectiveLabs/chainlink-injective/test/e2e/ocr_configs.go:21
+    Submits Governance Proposals and Funds Feed Reward Pool
+    /Users/xlab/Documents/dev/InjectiveLabs/chainlink-injective/test/e2e/ocr_configs.go:81
 ------------------------------
 
-Ran 1 of 1 Specs in 6.414 seconds
+Ran 1 of 1 Specs in 18.327 seconds
 SUCCESS! -- 1 Passed | 0 Failed | 0 Pending | 0 Skipped
 PASS
-
-Ginkgo ran 1 suite in 15.404257292s
-Test Suite Passed
 ```
 
 ### Verifying on-chain state
@@ -160,21 +181,20 @@ Available Commands:
   params              Gets ocr params
 ```
 
-For example, get the feed config for `LINK/USDT` feed:
+For example, get the feed config for `LINK/USDC` feed:
 
 ```bash
-> injectived --home ./var/data/injective-1/n0 q ocr feed-config LINK/USDT
+> injectived --home ./var/data/injective-1/n0 q ocr feed-config LINK/USDC
 feed_config:
-  f: 0
-  offchain_config: e30=
+  f: 1
+  offchain_config: CICg2eYdEIDkl9ASGIDkl9ASIIC8wZYLKIDkl9ASMP4BOgQBAQEBQiA1xYd9JqzdrbTZFe37XGakJ6PO2DKCkhWa/JCYDRRcXEIgyGOsc7xyDHmzTLBT2Bqb3yxwlPcxT/MubKbqdRnaIgpCILcyCNCyP4LCCxDvZZv/zqcTfkBM4xz0TPfmZWsGxuvSQiBqEloiNpBcFmFZd7bQsFmxmFfV+hDSUuhfn1gHigJHCko0MTJEM0tvb1dFb3k0S3JQM3V3ZDR1Wm1ERkJmS3VyMkY1elNOVFZNU3d5bVE5aU5DRnQ3Wko0MTJEM0tvb1dIZ29La3phTkdLWUszOVBNanlIM3RQQngxaURIbUVIenJCQ211S2huNEM4Rko0MTJEM0tvb1dKTFJYN04xYVAxWFNTN3ZIemlyZWVCY3M3bTlLdjMyMUZxWENDUGN3QjJQMko0MTJEM0tvb1dUMm1QYTVvbnFYR2tpY3ZhUVVIU1c2ZDZBVldjNUNMcXhNU1FUZlFDRGdjcVILCICt4gQQgMivoCVYgLzBlgtggLzBlgtogLzBlgtwgLzBlgt4gLzBlguCAYwBCiAkGQYBTVZaTi2WWvUFIFCFRck2LMFDifZbvwovn2wHVBIgGhv3U8JQXatSBLKE8f79fcTrg/YwRmTJwvQ8v0JWZmAaEA2f8S7UptzfYrOh2c0aHjMaEOOzcc00J0fGuSyqK01HlvYaECYmNaST/OH0LmJuDSfKD4IaEEDhjXNXatUM4pVXXUXVqZo=
   offchain_config_version: "2"
   onchain_config:
     billing_admin: ""
-    chain_id: ""
-    description: LINK/USDT Feed
+    chain_id: injective-1
+    description: LINK/USDC Feed
     feed_admin: ""
-    feed_id: LINK/USDT
-    is_testing: true
+    feed_id: LINK/USDC
     link_denom: peggy0x514910771AF9Ca656af840dff83E8264EcF986CA
     link_per_observation: "10"
     link_per_transmission: "69"
@@ -182,16 +202,24 @@ feed_config:
     min_answer: "0.000000000000000001"
     unique_reports: false
   signers:
-  - inj128jwakuw3wrq6ye7m4p64wrzc5rfl8tvwzc6s8
+  - inj1s4d8ygx4ej9k5wkge00uhcmdzd44udmfx98g78
+  - inj1zm0y9tdptfxtkc86f3hsuhk74fx2j2sylyd57d
+  - inj1u34x223x5y9fr3d09kyupycuqya8mlms2j5kua
+  - inj1555f842w0jfdns23n0z466jtjdlhj6xv3c267k
   transmitters:
-  - inj128jwakuw3wrq6ye7m4p64wrzc5rfl8tvwzc6s8
+  - inj1s4d8ygx4ej9k5wkge00uhcmdzd44udmfx98g78
+  - inj1zm0y9tdptfxtkc86f3hsuhk74fx2j2sylyd57d
+  - inj1u34x223x5y9fr3d09kyupycuqya8mlms2j5kua
+  - inj1555f842w0jfdns23n0z466jtjdlhj6xv3c267k
 feed_config_info:
   config_count: "1"
-  f: 0
-  latest_config_block_number: "19"
-  latest_config_digest: AAKuNguQkMLWL9HfNGV+InUggwbvg/tvTHwM1cS0gqI=
-  "n": 1
+  f: 1
+  latest_config_block_number: "32"
+  latest_config_digest: AAKhiy5LLi3Jon/OhLszF3M8RHltWiNgm8cSA0IQFac=
+  "n": 4
 ```
+
+We use 4 oracles there because `N=4 > F*3`.
 
 ## Running OCR2 oracle
 
@@ -220,14 +248,32 @@ Start a local MongoDB instance:
 # to stop: make mongo-stop
 ```
 
-Run the service itself:
+Run ALL 4 oracle instances at once:
 
 ```bash
-> injective-ocr2 start
-INFO[0000] Using Cosmos Sender inj128jwakuw3wrq6ye7m4p64wrzc5rfl8tvwzc6s8
-INFO[0000] Waiting for GRPC services
-INFO[0001] Using PeerID 12D3KooWPaHvunmPm3qjhsffgZBd2rQS4tdCgSYWEeRiX6hDsrdq for P2P identity
-INFO[0001] Using OCR2 key ID f7b80d092a4c328ef52508d2cef17f4f31d16293729e19c62f9ad6cb59a961a0
+> ./test/test_oracles_start.sh
+
+[start] running 4 oracles
+[post-start]
+Logs:
+  * tail -f ./var/oracles/oracle0.log
+  * tail -f ./var/oracles/oracle1.log
+  * tail -f ./var/oracles/oracle2.log
+  * tail -f ./var/oracles/oracle3.log
+
+Stopping:
+  * ./test/test_stop_oracles.sh
+```
+
+Monitor the logs of the first oracle (the bridge that will be used in Job spec):
+
+```bash
+> tail -f ./var/oracles/oracle0.log
+
+time="2021-10-08T17:28:26+03:00" level=info msg="Using Cosmos Sender inj1s4d8ygx4ej9k5wkge00uhcmdzd44udmfx98g78"
+time="2021-10-08T17:28:26+03:00" level=info msg="Waiting for GRPC services"
+time="2021-10-08T17:28:28+03:00" level=info msg="Using PeerID 12D3KooWEoy4KrP3uwd4uZmDFBfKur2F5zSNTVMSwymQ9iNCFt7Z for P2P identity"
+time="2021-10-08T17:28:28+03:00" level=info msg="Using OCR2 key ID 013208ee22ef424aa5d3a5abc3784459d8d72f6d602bbd19a94b626f8c9d932b"
 
 [GIN-debug] GET    /health                   --> github.com/InjectiveLabs/chainlink-injective/api.handleShowHealth.func1 (3 handlers)
 [GIN-debug] POST   /runs                     --> github.com/InjectiveLabs/chainlink-injective/api.(*httpServer).handleJobRun.func1 (3 handlers)
@@ -235,7 +281,7 @@ INFO[0001] Using OCR2 key ID f7b80d092a4c328ef52508d2cef17f4f31d16293729e19c62f9
 [GIN-debug] DELETE /jobs/:jobid              --> github.com/InjectiveLabs/chainlink-injective/api.(*httpServer).handleJobStop.func1 (4 handlers)
 ```
 
-Double check that the external initiator is actually registered within Chainlink Node, as they are not currently not being displayed under Bridges tab in Web UI.
+Double check that all 4 external initiators (`injective-ei*`) are actually registered within Chainlink Node, as they are not being displayed under Bridges tab in Web UI.
 
 ```bash
 > docker exec -it test_chainlink-node_1 /bin/bash
@@ -245,28 +291,110 @@ Double check that the external initiator is actually registered within Chainlink
 > chainlink initiators list
 
 ╔ External Initiators:
-╬════╬═══════════╬═══════════════════════════════════════╬═════════════════════════╬════════════════════════════════╬════════════════════════════╬
-║ ID ║   NAME    ║                  URL                  ║        ACCESSKEY        ║          OUTGOINGTOKEN         ║           CREATEDAT        ║
-╬════╬═══════════╬═══════════════════════════════════════╬═════════════════════════╬════════════════════════════════╬════════════════════════════╬
-║  1 ║ injective ║ http://host.docker.internal:8866/jobs ║ 415401b........38988d85 ║ AJWIiIMB......utdYGFRSFOO9VmFd ║ 2021-10-07 17:13:50.021709 ║
-║    ║           ║                                       ║                         ║                                ║ +0000 UTC                  ║
-╬════╬═══════════╬═══════════════════════════════════════╬═════════════════════════╬════════════════════════════════╬════════════════════════════╬
+╬════╬═══════════════╬═══════════════════════════════════════╬══════════════════════════════════╬══════════════════════════════════════════════════════════════════╬════════════════════════════════╬════════════════════════════════╬
+║ ID ║     NAME      ║                  URL                  ║            ACCESSKEY             ║                          OUTGOINGTOKEN                           ║           CREATEDAT            ║           UPDATEDAT            ║
+╬════╬═══════════════╬═══════════════════════════════════════╬══════════════════════════════════╬══════════════════════════════════════════════════════════════════╬════════════════════════════════╬════════════════════════════════╬
+║  1 ║ injective-ei0 ║ http://host.docker.internal:8866/jobs ║ 90c2142bfa0c4573bcff7955c32c8b17 ║ Y2HGB4rkqxMQvRoJbvkTVkkM1N2ni+4rS7JUEhP6ha9g1a0X6FCKH+4sV0TS1drP ║ 2021-10-08 12:25:10.89611      ║ 2021-10-08 12:25:10.89611      ║
+║    ║               ║                                       ║                                  ║                                                                  ║ +0000 UTC                      ║ +0000 UTC                      ║
+╬════╬═══════════════╬═══════════════════════════════════════╬══════════════════════════════════╬══════════════════════════════════════════════════════════════════╬════════════════════════════════╬════════════════════════════════╬
+║  2 ║ injective-ei1 ║ http://host.docker.internal:8867/jobs ║ 6161f044fa644d968752079b03111daa ║ I2zfNdIBfdxxraCX1LU+RV+uE5xCvgEE5/q/X1imbpzJp8192FGPyq/hbEJIa9Mk ║ 2021-10-08 12:25:11.131688     ║ 2021-10-08 12:25:11.131688     ║
+║    ║               ║                                       ║                                  ║                                                                  ║ +0000 UTC                      ║ +0000 UTC                      ║
+╬════╬═══════════════╬═══════════════════════════════════════╬══════════════════════════════════╬══════════════════════════════════════════════════════════════════╬════════════════════════════════╬════════════════════════════════╬
+║  3 ║ injective-ei2 ║ http://host.docker.internal:8868/jobs ║ 437fa2ca57364d2eb4f2790b8984f4db ║ MczBesfIBdGp/0UkjRjjtQ0Q3IdzUTxXRouYznPuFwPrqOizH4ErQ+gVcnd6ogRe ║ 2021-10-08 12:25:11.443282     ║ 2021-10-08 12:25:11.443282     ║
+║    ║               ║                                       ║                                  ║                                                                  ║ +0000 UTC                      ║ +0000 UTC                      ║
+╬════╬═══════════════╬═══════════════════════════════════════╬══════════════════════════════════╬══════════════════════════════════════════════════════════════════╬════════════════════════════════╬════════════════════════════════╬
+║  4 ║ injective-ei3 ║ http://host.docker.internal:8869/jobs ║ 8b80a95cb2f94c60a580bf287b8edde3 ║ FEkxJEDsGPoVy1gWJFpShZOdJIyI+SDSX1T9vYkITRKI3yeOJL2DbUuogSetOMUk ║ 2021-10-08 12:25:11.773275     ║ 2021-10-08 12:25:11.773275     ║
+║    ║               ║                                       ║                                  ║                                                                  ║ +0000 UTC                      ║ +0000 UTC                      ║
+╬════╬═══════════════╬═══════════════════════════════════════╬══════════════════════════════════╬══════════════════════════════════════════════════════════════════╬════════════════════════════════╬════════════════════════════════╬
+
+> chainlink bridges list
+╔ Bridges
+╬═══════════════╬═══════════════════════════════════════╬═══════════════╬
+║     NAME      ║                  URL                  ║ CONFIRMATIONS ║
+╬═══════════════╬═══════════════════════════════════════╬═══════════════╬
+║ injective-ea0 ║ http://host.docker.internal:8866/runs ║             0 ║
+╬═══════════════╬═══════════════════════════════════════╬═══════════════╬
+║ injective-ea1 ║ http://host.docker.internal:8867/runs ║             0 ║
+╬═══════════════╬═══════════════════════════════════════╬═══════════════╬
+║ injective-ea2 ║ http://host.docker.internal:8868/runs ║             0 ║
+╬═══════════════╬═══════════════════════════════════════╬═══════════════╬
+║ injective-ea3 ║ http://host.docker.internal:8869/runs ║             0 ║
+╬═══════════════╬═══════════════════════════════════════╬═══════════════╬
 ```
 
-Time to schedule a new Job. Go to Web UI at http://localhost:6688/jobs (u: `test@test` / p: `test_test`)
+It's time to schedule a new Job. There are multiple ways to create Jobs in Chainlink node, either via Web UI or API. We will use the following Job spec but adapted for each oracle, so there will be 4 jobs for `injective-ei{1-4}`/`injective-ea{1-4}` correspondingly:
 
 ```toml
 type            = "webhook"
 schemaVersion   = 1
-externalInitiators = [
-  { name = "injective", spec = "{\"feedId\": \"LINK/USDT\",\"p2pBootstrapPeers\": [\"16Uiu2HAm58SP7UL8zsnpeuwHfytLocaqgnyaYKP8wu7qRdrixLju@chain.link:1234\"],\"isBootstrapPeer\": false,\"keyID\": \"f7b80d092a4c328ef52508d2cef17f4f31d16293729e19c62f9ad6cb59a961a0\",\"observationTimeout\": \"10s\",\"blockchainTimeout\": \"10s\",\"contractConfigConfirmations\": 1}" }
-]
-observationSource   = """
-   ticker [type=http method=GET url="https://api.binance.com/api/v3/ticker/price?symbol=LINKUSDT"];
-   parse_rice [type="jsonparse" path="price"]
-   multiply_decimals [type="multiply" times=1000000]
-   send_to_bridge [type=bridge name="injective-ea" requestData=<{"jobID":$(jobSpec.externalJobID), "result":$(multiplyDecimals)}>]
 
-   ticker -> parse_rice -> multiply_decimals -> send_to_bridge
+externalInitiators = [
+  { name = "injective-ei0", spec = "{\"feedId\": \"LINK/USDC\",\"p2pBootstrapPeers\": [\"12D3KooWEoy4KrP3uwd4uZmDFBfKur2F5zSNTVMSwymQ9iNCFt7Z@127.0.0.1:4466\"],\"isBootstrapPeer\": false,\"keyID\": \"013208ee22ef424aa5d3a5abc3784459d8d72f6d602bbd19a94b626f8c9d932b\",\"observationTimeout\": \"10s\",\"blockchainTimeout\": \"10s\",\"contractConfigConfirmations\": 1}" },
+]
+
+observationSource   = """
+   ticker [type=http method=GET url="https://api.binance.com/api/v3/ticker/price?symbol=LINKUSDC"];
+   parsePrice [type="jsonparse" path="price"]
+   multiplyDecimals [type="multiply" times=1000000]
+   sendToBridge [type=bridge name="injective-ea0" requestData=<{"jobID":$(jobSpec.externalJobID), "result":$(multiplyDecimals)}>]
+
+   ticker -> parsePrice -> multiplyDecimals -> sendToBridge
 """
 ```
+
+To add all 4 Jobs automatically:
+```bash
+> ./test/test_jobs_start.sh
+
+Starting job 'job_linkusdc_ei0' (./test/jobs/job_linkusdc_ei0.toml) via Chainlink node
+Job has been added via Chainlink node
+Done adding Job 'job_linkusdc_ei0'
+
+Starting job 'job_linkusdc_ei1' (./test/jobs/job_linkusdc_ei1.toml) via Chainlink node
+Job has been added via Chainlink node
+Done adding Job 'job_linkusdc_ei1'
+
+Starting job 'job_linkusdc_ei2' (./test/jobs/job_linkusdc_ei2.toml) via Chainlink node
+Job has been added via Chainlink node
+Done adding Job 'job_linkusdc_ei2'
+
+Starting job 'job_linkusdc_ei3' (./test/jobs/job_linkusdc_ei3.toml) via Chainlink node
+Job has been added via Chainlink node
+Done adding Job 'job_linkusdc_ei3'
+```
+
+Each oracle node will spawn its own OCR2 peer! They will be comunicating and the elected transmitters will send the median result to the chain. Make sure to check jobs logs:
+
+```bash
+Logs:
+  * tail -f ./var/oracles/oracle0.log
+  * tail -f ./var/oracles/oracle1.log
+  * tail -f ./var/oracles/oracle2.log
+  * tail -f ./var/oracles/oracle3.log
+```
+
+And you can query onchain state using on of the CLI subcommands on the chain client:
+
+```bash
+> injectived --home ./var/data/injective-1/n0 q ocr latest-transmission LINK/USDC
+config_digest: AAKocozoxdRepNyjfzFr9pBpJoTzQ0IT3Wl1efeXa7E=
+data:
+  answer: "27480000.000000000000000000"
+  observations_timestamp: "1633819742"
+  transmission_timestamp: "1633819745"
+epoch_and_round:
+  epoch: "45"
+  round: "1"
+
+> injectived --home ./var/data/injective-1/n0 q ocr latest-transmission LINK/USDC
+config_digest: AAKocozoxdRepNyjfzFr9pBpJoTzQ0IT3Wl1efeXa7E=
+data:
+  answer: "27550000.000000000000000000"
+  observations_timestamp: "1633820296"
+  transmission_timestamp: "1633820299"
+epoch_and_round:
+  epoch: "93"
+  round: "1"
+```
+
+It works! 🎉
