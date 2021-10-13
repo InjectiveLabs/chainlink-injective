@@ -8,7 +8,7 @@ Below are the instructions on running this oracle node.
 
 ### Step 1
 
-Clone https://github.com/InjectiveLabs/injective-core on branch `f/ocr` and build the chain node.
+Clone https://github.com/InjectiveLabs/injective-core on branch `dev` and build the chain node.
 It will have the OCR chain module that is ready to accept transmissions. Installing the node is as simple as running `make install` in the corresponding repo.
 
 ### Step 2
