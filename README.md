@@ -1,8 +1,8 @@
 # chainlink-injective
 
-OCR2 median reporting plugin integration demo with libocr2 and Cosmos module, tailored for Injective Chain.
+OCR2 median reporting plugin integration demo with libocr2 and the OCR Cosmos module, tailored for the Injective Chain.
 
-There is the instruction on running this oracle node.
+Below are the instructions on running this oracle node.
 
 ## Prepare the environment
 
@@ -13,7 +13,7 @@ It will have the OCR chain module that is ready to accept transmissions. Install
 
 ### Step 2
 
-Finally, clone https://github.com/InjectiveLabs/chainlink-injective (this repo on `master`) and let's run it. Make sure `injectived` executable is available on your system. Also [jq](https://stedolan.github.io/jq/) tool is required.
+Finally, clone https://github.com/InjectiveLabs/chainlink-injective (this repo on `master`) and let's run it. Make sure `injectived` executable is available on your system. Also [jq](https://stedolan.github.io/jq/) is required.
 
 ### Step 3
 
@@ -26,7 +26,7 @@ Install Docker. Run Chainlink Node and its Web UI
 > docker logs -f test_chainlink-node_1
 ```
 
-The credentials for Chainlink Web UI are following:
+Open http://localhost:6688 in your browser to view the Chainlink Web UI. You can enter the following credentials:
 ```
 username: test@test
 password: test_test
