@@ -13,6 +13,8 @@ import (
 	"github.com/xlab/closer"
 	log "github.com/xlab/suplog"
 
+	chainclient "github.com/InjectiveLabs/sdk-go/chain/client"
+
 	"github.com/InjectiveLabs/chainlink-injective/api"
 	"github.com/InjectiveLabs/chainlink-injective/chainlink"
 	"github.com/InjectiveLabs/chainlink-injective/db"
@@ -21,7 +23,6 @@ import (
 	ocrtypes "github.com/InjectiveLabs/chainlink-injective/injective/types"
 	"github.com/InjectiveLabs/chainlink-injective/ocr2"
 	"github.com/InjectiveLabs/chainlink-injective/p2p"
-	chainclient "github.com/InjectiveLabs/sdk-go/chain/client"
 )
 
 // startCmd action runs the service
@@ -176,7 +177,7 @@ func startCmd(cmd *cli.Cmd) {
 		)
 
 		if *cosmosUseLedger {
-			log.Fatalln("cannot really use Ledger for oracle service loop, since signatures msut be realtime")
+			log.Fatalln("cannot really use Ledger for oracle service loop, since signatures must be realtime")
 		}
 
 		senderAddress, cosmosKeyring, err := initCosmosKeyring(
@@ -299,7 +300,7 @@ func startCmd(cmd *cli.Cmd) {
 
 		log.Infof("Using PeerID %s for P2P identity", peer.ID(peerID).Pretty())
 
-		// Load OCR2 key fron the keystore
+		// Load OCR2 key from the keystore
 		//
 
 		ocrKeyID, ocrKey, err := initOCRKey(

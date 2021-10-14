@@ -23,7 +23,7 @@ type webhookClient struct {
 	logger log.Logger
 }
 
-// NewChainlink creates a Chainlink Node client for triggering jobs using webhooks.
+// NewWebhookClient creates a Chainlink Node client for triggering jobs using webhooks.
 func NewWebhookClient(url, icKey, icSecret string) WebhookClient {
 	return &webhookClient{
 		nodeURL:  url,
