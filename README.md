@@ -84,9 +84,9 @@ Done adding EI 'injective-ei3'
 It will save 4 generated files with CI/IC credentials into
 ```
 ./test/oracles/oracle0/external_initiator_injective-ei0.env
-./test/oracles/oracle0/external_initiator_injective-ei1.env
-./test/oracles/oracle0/external_initiator_injective-ei2.env
-./test/oracles/oracle0/external_initiator_injective-ei3.env
+./test/oracles/oracle1/external_initiator_injective-ei1.env
+./test/oracles/oracle2/external_initiator_injective-ei2.env
+./test/oracles/oracle3/external_initiator_injective-ei3.env
 ```
 
 Later they will be loaded by `test_oracles_start.sh` script.
@@ -184,7 +184,7 @@ For example, get the feed config for `LINK/USDC` feed:
 > injectived --home ./var/data/injective-1/n0 q ocr feed-config LINK/USDC
 feed_config:
   f: 1
-  offchain_config: CICg2eYdEIDkl9ASGIDkl9ASIIC8wZYLKIDkl9ASMP4BOgQBAQEBQiA1xYd9JqzdrbTZFe37XGakJ6PO2DKCkhWa/JCYDRRcXEIgyGOsc7xyDHmzTLBT2Bqb3yxwlPcxT/MubKbqdRnaIgpCILcyCNCyP4LCCxDvZZv/zqcTfkBM4xz0TPfmZWsGxuvSQiBqEloiNpBcFmFZd7bQsFmxmFfV+hDSUuhfn1gHigJHCko0MTJEM0tvb1dFb3k0S3JQM3V3ZDR1Wm1ERkJmS3VyMkY1elNOVFZNU3d5bVE5aU5DRnQ3Wko0MTJEM0tvb1dIZ29La3phTkdLWUszOVBNanlIM3RQQngxaURIbUVIenJCQ211S2huNEM4Rko0MTJEM0tvb1dKTFJYN04xYVAxWFNTN3ZIemlyZWVCY3M3bTlLdjMyMUZxWENDUGN3QjJQMko0MTJEM0tvb1dUMm1QYTVvbnFYR2tpY3ZhUVVIU1c2ZDZBVldjNUNMcXhNU1FUZlFDRGdjcVILCICt4gQQgMivoCVYgLzBlgtggLzBlgtogLzBlgtwgLzBlgt4gLzBlguCAYwBCiAkGQYBTVZaTi2WWvUFIFCFRck2LMFDifZbvwovn2wHVBIgGhv3U8JQXatSBLKE8f79fcTrg/YwRmTJwvQ8v0JWZmAaEA2f8S7UptzfYrOh2c0aHjMaEOOzcc00J0fGuSyqK01HlvYaECYmNaST/OH0LmJuDSfKD4IaEEDhjXNXatUM4pVXXUXVqZo=
+  offchain_config: CICg2eYdEIDkl9ASGIDkl9ASIIC8wZYLKIDkl9ASMP4BOgQBAQEBQiA1xYd9JqzdrbTZFe37XGakJ6PO2DKCkhWa/JCYDRRcXEIgyGOsc7xyDHmzTLBT2Bqb3yxwlPcxT/MubKbqdRnaIgpCILcyCNCyP4LCCxDvZZv/zqcTfkBM4xz0TPfmZWsGxuvSQiBqEloiNpBcFmFZd7bQsFmxmFfV+hDSUuhfn1gHigJHCko0MTJEM0tvb1dFb3k0S3JQM3V3ZDR1Wm1ERkJmS3VyMkY1elNOVFZNU3d5bVE5aU5DRnQ3Wko0MTJEM0tvb1dIZ29La3phTkdLWUszOVBNanlIM3RQQngxaURIbUVIenJCQ211S2huNEM4Rko0MTJEM0tvb1dKTFJYN04xYVAxWFNTN3ZIemlyZWVCY3M3bTlLdjMyMUZxWENDUGN3QjJQMko0MTJEM0tvb1dUMm1QYTVvbnFYR2tpY3ZhUVVIU1c2ZDZBVldjNUNMcXhNU1FUZlFDRGdjcVIQEICt4gQggK3iBCiAyK+gJViAvMGWC2CAvMGWC2iAvMGWC3CAvMGWC3iAvMGWC4IBjAEKIAb8hP18/fu/Wt5FUWplQc2n0pMOFtHhWbslsFW8QEZUEiAaG/dTwlBdq1IEsoTx/v19xOuD9jBGZMnC9Dy/QlZmYBoQKKpADAP8ojGkOk/4lubZfhoQC6sedgZzjeZClWqj9hFlqhoQLsBVS46x3bxbv7YMeMGndhoQsTgAUGKCha1ceuqg6IZ5KQ==
   offchain_config_version: "2"
   onchain_config:
     billing_admin: ""
@@ -212,7 +212,7 @@ feed_config_info:
   config_count: "1"
   f: 1
   latest_config_block_number: "32"
-  latest_config_digest: AAKhiy5LLi3Jon/OhLszF3M8RHltWiNgm8cSA0IQFac=
+  latest_config_digest: AAJyGdyLvmxXqyr11xLxqCRZllKTZqoZCUbXw1XOnew=
   "n": 4
 ```
 

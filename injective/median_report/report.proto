@@ -3,7 +3,7 @@ package chainlink.cosmos.reportingplugin.median.v1beta1;
 
 import "gogoproto/gogo.proto";
 
-option go_package = "../median";
+option go_package = "../median_report";
 
 message Report {
   int64 observations_timestamp = 1;

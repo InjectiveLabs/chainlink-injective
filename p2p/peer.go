@@ -162,8 +162,8 @@ func (p *peerService) Start() (err error) {
 		}
 
 		p.peer = &peerAdapter{
-			BinaryNetworkEndpointFactory: peer.GenOCRBinaryNetworkEndpointFactory(),
-			BootstrapperFactory:          peer.GenOCRBootstrapperFactory(),
+			BinaryNetworkEndpointFactory: peer.OCR2BinaryNetworkEndpointFactory(),
+			BootstrapperFactory:          peer.OCR2BootstrapperFactory(),
 			Closer:                       peer,
 		}
 	})

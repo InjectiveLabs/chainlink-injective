@@ -129,11 +129,11 @@ func (j *jobDBWrapper) PendingTransmissionsWithConfigDigest(ctx context.Context,
 		pendingTransmission := ocrtypes.PendingTransmission{
 			Time:                 tx.Transmission.CreatedAt,
 			Report:               ocrtypes.Report(tx.Transmission.Report),
-			AttributedSignatures: make([]ocrtypes.AttributedOnChainSignature, 0, len(tx.Transmission.AttributedSignatures)),
+			AttributedSignatures: make([]ocrtypes.AttributedOnchainSignature, 0, len(tx.Transmission.AttributedSignatures)),
 		}
 
 		for _, sig := range tx.Transmission.AttributedSignatures {
-			pendingTransmission.AttributedSignatures = append(pendingTransmission.AttributedSignatures, ocrtypes.AttributedOnChainSignature{
+			pendingTransmission.AttributedSignatures = append(pendingTransmission.AttributedSignatures, ocrtypes.AttributedOnchainSignature{
 				Signature: sig.Signature,
 				Signer:    commontypes.OracleID(sig.Signer),
 			})

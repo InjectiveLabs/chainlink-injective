@@ -9,12 +9,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	. "github.com/onsi/ginkgo"
+	ocrtypes "github.com/smartcontractkit/libocr/offchainreporting/types"
+	"github.com/smartcontractkit/libocr/offchainreporting2/reportingplugin/median"
 
 	chaintypes "github.com/InjectiveLabs/chainlink-injective/injective/types"
 	"github.com/InjectiveLabs/chainlink-injective/ocr2/config"
 	ocrconfig "github.com/InjectiveLabs/chainlink-injective/ocr2/config"
-	"github.com/InjectiveLabs/chainlink-injective/ocr2/reportingplugin/median"
-	ocrtypes "github.com/smartcontractkit/libocr/offchainreporting/types"
 )
 
 var _ = Describe("OCR Feed Configs", func() {
@@ -96,12 +96,11 @@ var _ = Describe("OCR Feed Configs", func() {
 })
 
 func makeFastChainOffchainConfig() []byte {
-	medianPluginConfig := &median.MedianPluginConfig{
-		AlphaPpb: 1000000000 / 100, // threshold PPB
-		DeltaC:   uint64(10 * time.Second),
+	medianPluginConfig := &median.OffchainConfig{
+		AlphaReportPPB: 1000000000 / 100, // threshold PPB
+		AlphaAcceptPPB: 1000000000 / 100, // threshold PPB
+		DeltaC:         10 * time.Second,
 	}
-	medianPluginConfigBytes, err := medianPluginConfig.Encode()
-	orFail(err)
 
 	sharedSecretEncryptionPublicKeys := []ocrtypes.SharedSecretEncryptionPublicKey{
 		fromHex32("2f70f0dda48830c8bcbe465cf3f5b5712a2abf5b1753e9116246a3f67d29b61b"),
@@ -131,8 +130,7 @@ func makeFastChainOffchainConfig() []byte {
 		DeltaProgress: uint64(8 * time.Second),
 		DeltaResend:   uint64(5 * time.Second),
 		DeltaGrace:    uint64(3 * time.Second),
-
-		RMax: 254,
+		RMax:          254,
 		S: []uint32{
 			1, 1, 1, 1,
 		},
@@ -149,13 +147,15 @@ func makeFastChainOffchainConfig() []byte {
 			"12D3KooWT2mPa5onqXGkicvaQUHSW6d6AVWc5CLqxMSQTfQCDgcq",
 		},
 
-		ReportingPluginConfig: medianPluginConfigBytes,
+		ReportingPluginConfig: medianPluginConfig.Encode(),
 
-		MaxDurationQuery:                        uint64(3 * time.Second),
-		MaxDurationObservation:                  uint64(3 * time.Second),
-		MaxDurationReport:                       uint64(3 * time.Second),
-		MaxDurationShouldAcceptFinalizedReport:  uint64(3 * time.Second),
-		MaxDurationShouldTransmitAcceptedReport: uint64(3 * time.Second),
+		// NOTE: sum of MaxDurationQuery/Observation/Report (7.5s) must be less than DeltaProgress (8s)
+		MaxDurationQuery:       uint64(2500 * time.Millisecond),
+		MaxDurationObservation: uint64(2500 * time.Millisecond),
+		MaxDurationReport:      uint64(2500 * time.Millisecond),
+
+		MaxDurationShouldAcceptFinalizedReport:  uint64(2500 * time.Millisecond),
+		MaxDurationShouldTransmitAcceptedReport: uint64(2500 * time.Millisecond),
 
 		SharedSecretEncryptions: sharedSecretEncryptions.Proto(),
 	}

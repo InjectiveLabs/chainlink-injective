@@ -6,10 +6,10 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/smartcontractkit/libocr/offchainreporting2/reportingplugin/median"
 	"github.com/smartcontractkit/libocr/offchainreporting2/types"
 
 	chaintypes "github.com/InjectiveLabs/chainlink-injective/injective/types"
-	"github.com/InjectiveLabs/chainlink-injective/ocr2/reportingplugin/median"
 )
 
 var _ median.MedianContract = &CosmosMedianReporter{}

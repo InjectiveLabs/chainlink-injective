@@ -4,13 +4,12 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/gogo/protobuf/proto"
 	"github.com/pkg/errors"
 	"github.com/smartcontractkit/libocr/offchainreporting2/types"
 	log "github.com/xlab/suplog"
 
+	"github.com/InjectiveLabs/chainlink-injective/injective/median_report"
 	chaintypes "github.com/InjectiveLabs/chainlink-injective/injective/types"
-	"github.com/InjectiveLabs/chainlink-injective/ocr2/reportingplugin/median"
 	chainclient "github.com/InjectiveLabs/sdk-go/chain/client"
 )
 
@@ -20,6 +19,7 @@ type CosmosModuleTransmitter struct {
 	FeedId       string
 	QueryClient  chaintypes.QueryClient
 	CosmosClient chainclient.CosmosClient
+	ReportCodec  median_report.ReportCodec
 }
 
 func (c *CosmosModuleTransmitter) FromAccount() types.Account {
@@ -31,7 +31,7 @@ func (c *CosmosModuleTransmitter) Transmit(
 	ctx context.Context,
 	reportCtx types.ReportContext,
 	report types.Report,
-	signatures []types.AttributedOnChainSignature,
+	signatures []types.AttributedOnchainSignature,
 ) error {
 	if len(c.FeedId) == 0 {
 		err := errors.New("CosmosModuleTransmitter has no FeedId set")
@@ -40,9 +40,8 @@ func (c *CosmosModuleTransmitter) Transmit(
 
 	// TODO: design how to decouple Cosmos reporting from reportingplugins of OCR2
 	// The reports are not necessarily numeric (see: titlerequest).
-	var reportRaw median.Report
-	if err := proto.Unmarshal([]byte(report), &reportRaw); err != nil {
-		err = errors.Wrap(err, "failed to unmarshal opaque report as median.Report")
+	reportRaw, err := c.ReportCodec.ParseReport(report)
+	if err != nil {
 		return err
 	}
 

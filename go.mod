@@ -19,7 +19,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/shopspring/decimal v1.2.0
 	github.com/smartcontractkit/chainlink v0.10.14
-	github.com/smartcontractkit/libocr v0.0.0-20210901161650-afc44a0b242a
+	github.com/smartcontractkit/libocr v0.0.0-20211027142358-580c720a7bcf
 	github.com/tendermint/tendermint v0.34.13
 	github.com/xlab/closer v0.0.0-20190328110542-03326addb7c2
 	github.com/xlab/suplog v1.3.1

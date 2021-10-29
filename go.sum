@@ -1667,6 +1667,8 @@ github.com/smartcontractkit/libocr v0.0.0-20201203233047-5d9b24f0cbb5/go.mod h1:
 github.com/smartcontractkit/libocr v0.0.0-20210826183649-d12971936c12/go.mod h1:AQktwBooI+Y/8NWdvIzU+EgGoLzpe3mo+o+jluMonTw=
 github.com/smartcontractkit/libocr v0.0.0-20210901161650-afc44a0b242a h1:T72pJcx9PoYycqKzFD5kuvHFIl21D3w7EQokpa4BogM=
 github.com/smartcontractkit/libocr v0.0.0-20210901161650-afc44a0b242a/go.mod h1:Lcv1Trj9QBPXI7nf28zOqOnjaE5v/DOK7+3ctGA77jE=
+github.com/smartcontractkit/libocr v0.0.0-20211027142358-580c720a7bcf h1:SoZVLf285F2SWsFgI+AzZa/hixjb37YL/yjo9olEV4U=
+github.com/smartcontractkit/libocr v0.0.0-20211027142358-580c720a7bcf/go.mod h1:Lcv1Trj9QBPXI7nf28zOqOnjaE5v/DOK7+3ctGA77jE=
 github.com/smartcontractkit/wsrpc v0.3.4 h1:6pG+1BIZPMYcbqhLvTPl0wKzys01msAib9iG1pn/nNM=
 github.com/smartcontractkit/wsrpc v0.3.4/go.mod h1:9ciG9g+0Hb9FgqUmt7MHz3EhTbLjbEoftcq8McErZN0=
 github.com/smartystreets/assertions v0.0.0-20180927180507-b2de0cb4f26d h1:zE9ykElWQ6/NYmHa3jpm/yHnI4xSofP+UP6SpjHcSeM=

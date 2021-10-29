@@ -16,11 +16,12 @@ import (
 	"github.com/InjectiveLabs/chainlink-injective/chainlink"
 	"github.com/InjectiveLabs/chainlink-injective/db"
 	"github.com/InjectiveLabs/chainlink-injective/db/model"
+	"github.com/InjectiveLabs/chainlink-injective/injective/median_report"
 	"github.com/InjectiveLabs/chainlink-injective/keys/ocrkey"
 	"github.com/InjectiveLabs/chainlink-injective/keys/p2pkey"
 	"github.com/InjectiveLabs/chainlink-injective/logging"
-	"github.com/InjectiveLabs/chainlink-injective/ocr2/reportingplugin/median"
 	"github.com/InjectiveLabs/chainlink-injective/p2p"
+	"github.com/smartcontractkit/libocr/offchainreporting2/reportingplugin/median"
 )
 
 type Job interface {
@@ -175,7 +176,7 @@ func (j *job) initOracleService(
 	}
 
 	if j.jobSpec.IsBootstrapPeer {
-		bootstrapArgs := ocr2.BootstrapNodeArgs{
+		bootstrapArgs := ocr2.BootstrapperArgs{
 			BootstrapperFactory:    p2pService.Peer(),
 			V2Bootstrappers:        v2BootstrapPeers,
 			ContractConfigTracker:  j.configTracker,
@@ -186,7 +187,7 @@ func (j *job) initOracleService(
 			OffchainConfigDigester: j.offchainConfigDigester,
 		}
 
-		bootstrapNode, err := ocr2.NewBootstrapNode(bootstrapArgs)
+		bootstrapNode, err := ocr2.NewBootstrapper(bootstrapArgs)
 		if err != nil {
 			err = errors.Wrap(err, "failed to init OCR2 bootstrap node")
 			return err
@@ -200,6 +201,7 @@ func (j *job) initOracleService(
 		ContractTransmitter: j.medianReporter,
 		DataSource:          j, // reads from Observe() of this job
 		Logger:              ocrLogger,
+		ReportCodec:         median_report.ReportCodec{},
 	}
 
 	ocrArgs := ocr2.OracleArgs{
