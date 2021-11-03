@@ -198,10 +198,11 @@ func (j *job) initOracleService(
 	}
 
 	numericalMedianFactory := median.NumericalMedianFactory{
-		ContractTransmitter: j.medianReporter,
-		DataSource:          j, // reads from Observe() of this job
-		Logger:              ocrLogger,
-		ReportCodec:         median_report.ReportCodec{},
+		ContractTransmitter:   j.medianReporter,
+		DataSource:            j, // reads from Observe() of this job
+		JuelsPerEthDataSource: &dsZero{},
+		Logger:                ocrLogger,
+		ReportCodec:           median_report.ReportCodec{},
 	}
 
 	ocrArgs := ocr2.OracleArgs{

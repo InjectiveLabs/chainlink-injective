@@ -3,6 +3,7 @@ package e2e
 import (
 	cryptorand "crypto/rand"
 	"fmt"
+	"math/big"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -56,7 +57,13 @@ var _ = Describe("OCR Feed Configs", func() {
 						getAddressOrFail("oracle3").String(),
 					},
 					F: 1,
-					OnchainConfig: &chaintypes.OnchainConfig{
+					OnchainConfig: makeMedianReportingOnchainConfig(
+						sdk.SmallestDec().BigInt(),
+						sdk.NewDec(99999999999999999).BigInt(),
+					),
+					OffchainConfigVersion: 2, // OCR2
+					OffchainConfig:        makeFastChainOffchainConfig(),
+					ModuleParams: &chaintypes.ModuleParams{
 						FeedId:              feedId,
 						MinAnswer:           sdk.SmallestDec(),
 						MaxAnswer:           sdk.NewDec(99999999999999999),
@@ -66,8 +73,6 @@ var _ = Describe("OCR Feed Configs", func() {
 						UniqueReports:       false,
 						Description:         fmt.Sprintf("%s/%s Feed", pair[0], pair[1]),
 					},
-					OffchainConfigVersion: 2, // OCR2
-					OffchainConfig:        makeFastChainOffchainConfig(),
 				},
 			})
 
@@ -94,6 +99,18 @@ var _ = Describe("OCR Feed Configs", func() {
 		})
 	})
 })
+
+func makeMedianReportingOnchainConfig(min, max *big.Int) []byte {
+	config := &median.OnchainConfig{
+		Min: min,
+		Max: max,
+	}
+
+	configBytes, err := config.Encode()
+	orFail(err)
+
+	return configBytes
+}
 
 func makeFastChainOffchainConfig() []byte {
 	medianPluginConfig := &median.OffchainConfig{

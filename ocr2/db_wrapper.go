@@ -112,7 +112,31 @@ func (j *jobDBWrapper) ReadConfig(ctx context.Context) (*ocrtypes.ContractConfig
 }
 
 func (j *jobDBWrapper) StorePendingTransmission(ctx context.Context, reportTimestamp ocrtypes.ReportTimestamp, tx ocrtypes.PendingTransmission) error {
-	pendingTransmission := &model.JobPendingTransmission{}
+	pendingTransmission := &model.JobPendingTransmission{
+		JobID:        j.svc.JobID(),
+		ConfigDigest: model.ID(reportTimestamp.ConfigDigest.Hex()),
+		ReportTimestamp: model.ReportTimestamp{
+			Epoch: reportTimestamp.Epoch,
+			Round: reportTimestamp.Round,
+		},
+		Transmission: model.PendingTransmission{
+			Time:                 tx.Time,
+			ExtraHash:            model.HexBytes(tx.ExtraHash[:]),
+			Report:               model.HexBytes(tx.Report),
+			AttributedSignatures: make([]model.AttributedOnchainSignature, 0, len(tx.AttributedSignatures)),
+		},
+
+		CreatedAt: time.Now().UTC(),
+	}
+
+	for _, sig := range tx.AttributedSignatures {
+		pendingTransmission.Transmission.AttributedSignatures = append(pendingTransmission.Transmission.AttributedSignatures,
+			model.AttributedOnchainSignature{
+				Signature: model.HexBytes(sig.Signature),
+				Signer:    int(sig.Signer),
+			})
+	}
+
 	return j.svc.InsertPendingTranmission(ctx, pendingTransmission)
 }
 
@@ -127,7 +151,7 @@ func (j *jobDBWrapper) PendingTransmissionsWithConfigDigest(ctx context.Context,
 	result := make(map[ocrtypes.ReportTimestamp]ocrtypes.PendingTransmission, len(transmissions))
 	for _, tx := range transmissions {
 		pendingTransmission := ocrtypes.PendingTransmission{
-			Time:                 tx.Transmission.CreatedAt,
+			Time:                 tx.Transmission.Time,
 			Report:               ocrtypes.Report(tx.Transmission.Report),
 			AttributedSignatures: make([]ocrtypes.AttributedOnchainSignature, 0, len(tx.Transmission.AttributedSignatures)),
 		}

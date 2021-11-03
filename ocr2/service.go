@@ -199,7 +199,10 @@ func (j *jobService) ocrStartForJob(jobID string, jobSpec *model.JobSpec) error 
 		TendermintClient: j.tmClient,
 	}
 
-	offchainConfigDigester := &injective.CosmosOffchainConfigDigester{}
+	offchainConfigDigester := &injective.CosmosOffchainConfigDigester{
+		ChainID: j.chainID,
+		FeedID:  string(jobSpec.FeedID),
+	}
 
 	job, err := j.newJob(
 		jobID,

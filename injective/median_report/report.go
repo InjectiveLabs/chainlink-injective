@@ -39,15 +39,14 @@ func (ReportCodec) BuildReport(observations []median.ParsedAttributedObservation
 		return observations[i].Value.Cmp(observations[j].Value) < 0
 	})
 
-	observers := [32]byte{}
 	reportToPack := &Report{
 		ObservationsTimestamp: int64(timestamp),
-		Observers:             observers[:],
+		Observers:             make([]byte, 0, len(observations)),
 		Observations:          make([]sdk.Dec, 0, len(observations)),
 	}
 
-	for i, observation := range observations {
-		observers[i] = byte(observation.Observer)
+	for _, observation := range observations {
+		reportToPack.Observers = append(reportToPack.Observers, byte(observation.Observer))
 		reportToPack.Observations = append(reportToPack.Observations, sdk.NewDecFromBigInt(observation.Value))
 	}
 

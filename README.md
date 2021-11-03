@@ -184,11 +184,8 @@ For example, get the feed config for `LINK/USDC` feed:
 > injectived --home ./var/data/injective-1/n0 q ocr feed-config LINK/USDC
 feed_config:
   f: 1
-  offchain_config: CICg2eYdEIDkl9ASGIDkl9ASIIC8wZYLKIDkl9ASMP4BOgQBAQEBQiA1xYd9JqzdrbTZFe37XGakJ6PO2DKCkhWa/JCYDRRcXEIgyGOsc7xyDHmzTLBT2Bqb3yxwlPcxT/MubKbqdRnaIgpCILcyCNCyP4LCCxDvZZv/zqcTfkBM4xz0TPfmZWsGxuvSQiBqEloiNpBcFmFZd7bQsFmxmFfV+hDSUuhfn1gHigJHCko0MTJEM0tvb1dFb3k0S3JQM3V3ZDR1Wm1ERkJmS3VyMkY1elNOVFZNU3d5bVE5aU5DRnQ3Wko0MTJEM0tvb1dIZ29La3phTkdLWUszOVBNanlIM3RQQngxaURIbUVIenJCQ211S2huNEM4Rko0MTJEM0tvb1dKTFJYN04xYVAxWFNTN3ZIemlyZWVCY3M3bTlLdjMyMUZxWENDUGN3QjJQMko0MTJEM0tvb1dUMm1QYTVvbnFYR2tpY3ZhUVVIU1c2ZDZBVldjNUNMcXhNU1FUZlFDRGdjcVIQEICt4gQggK3iBCiAyK+gJViAvMGWC2CAvMGWC2iAvMGWC3CAvMGWC3iAvMGWC4IBjAEKIAb8hP18/fu/Wt5FUWplQc2n0pMOFtHhWbslsFW8QEZUEiAaG/dTwlBdq1IEsoTx/v19xOuD9jBGZMnC9Dy/QlZmYBoQKKpADAP8ojGkOk/4lubZfhoQC6sedgZzjeZClWqj9hFlqhoQLsBVS46x3bxbv7YMeMGndhoQsTgAUGKCha1ceuqg6IZ5KQ==
-  offchain_config_version: "2"
-  onchain_config:
+  module_params:
     billing_admin: ""
-    chain_id: injective-1
     description: LINK/USDC Feed
     feed_admin: ""
     feed_id: LINK/USDC
@@ -198,6 +195,9 @@ feed_config:
     max_answer: "99999999999999999.000000000000000000"
     min_answer: "0.000000000000000001"
     unique_reports: false
+  offchain_config: CICg2eYdEIDkl9ASGIDkl9ASIIC8wZYLKIDkl9ASMP4BOgQBAQEBQiA1xYd9JqzdrbTZFe37XGakJ6PO2DKCkhWa/JCYDRRcXEIgyGOsc7xyDHmzTLBT2Bqb3yxwlPcxT/MubKbqdRnaIgpCILcyCNCyP4LCCxDvZZv/zqcTfkBM4xz0TPfmZWsGxuvSQiBqEloiNpBcFmFZd7bQsFmxmFfV+hDSUuhfn1gHigJHCko0MTJEM0tvb1dFb3k0S3JQM3V3ZDR1Wm1ERkJmS3VyMkY1elNOVFZNU3d5bVE5aU5DRnQ3Wko0MTJEM0tvb1dIZ29La3phTkdLWUszOVBNanlIM3RQQngxaURIbUVIenJCQ211S2huNEM4Rko0MTJEM0tvb1dKTFJYN04xYVAxWFNTN3ZIemlyZWVCY3M3bTlLdjMyMUZxWENDUGN3QjJQMko0MTJEM0tvb1dUMm1QYTVvbnFYR2tpY3ZhUVVIU1c2ZDZBVldjNUNMcXhNU1FUZlFDRGdjcVIQEICt4gQggK3iBCiAyK+gJViA8ouoCWCA8ouoCWiA8ouoCXCA8ouoCXiA8ouoCYIBjAEKIMHwJZ/qY+JBiwXbDkUKYFj1+ucexJlht/ogU1aUKoIWEiAaG/dTwlBdq1IEsoTx/v19xOuD9jBGZMnC9Dy/QlZmYBoQcbGYD26K+CjDtSQkDI1MjxoQGIWmae/UnJO5bWRb5VD8VRoQEt+NJj5AFhYMQhmheTFPvxoQfSpuEtwekIegGHx4B+U3ow==
+  offchain_config_version: "2"
+  onchain_config: AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAABNCYXLHTYIdptk0WJwAAA==
   signers:
   - inj1s4d8ygx4ej9k5wkge00uhcmdzd44udmfx98g78
   - inj1zm0y9tdptfxtkc86f3hsuhk74fx2j2sylyd57d
@@ -211,8 +211,8 @@ feed_config:
 feed_config_info:
   config_count: "1"
   f: 1
-  latest_config_block_number: "32"
-  latest_config_digest: AAJyGdyLvmxXqyr11xLxqCRZllKTZqoZCUbXw1XOnew=
+  latest_config_block_number: "37"
+  latest_config_digest: AALzp3/8+dhfITFitsGbqt3JuOWnFUuySdxKoI/6VW4=
   "n": 4
 ```
 

@@ -67,6 +67,8 @@ type JobPendingTransmission struct {
 
 	ReportTimestamp ReportTimestamp     `json:"reportTimestamp" bson:"reportTimestamp"`
 	Transmission    PendingTransmission `json:"tx" bson:"tx"`
+
+	CreatedAt time.Time `json:"createdAt" bson:"createdAt"`
 }
 
 type ReportTimestamp struct {
@@ -75,13 +77,13 @@ type ReportTimestamp struct {
 }
 
 type PendingTransmission struct {
-	CreatedAt            time.Time                    `json:"createdAt" bson:"createdAt"`
+	Time                 time.Time                    `json:"time" bson:"time"`
 	ExtraHash            HexBytes                     `json:"extraHash" bson:"extraHash"`
 	Report               HexBytes                     `json:"report" bson:"report"`
-	AttributedSignatures []AttributedOnChainSignature `json:"signatures" bson:"signatures"`
+	AttributedSignatures []AttributedOnchainSignature `json:"signatures" bson:"signatures"`
 }
 
-type AttributedOnChainSignature struct {
+type AttributedOnchainSignature struct {
 	Signature HexBytes `json:"signature" bson:"signature"`
 	Signer    int      `json:"signer" bson:"signer"`
 }

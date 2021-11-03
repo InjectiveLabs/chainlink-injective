@@ -11,7 +11,10 @@ const ConfigDigestPrefixCosmos types.ConfigDigestPrefix = 2
 
 var _ types.OffchainConfigDigester = CosmosOffchainConfigDigester{}
 
-type CosmosOffchainConfigDigester struct{}
+type CosmosOffchainConfigDigester struct {
+	ChainID string
+	FeedID  string
+}
 
 func (d CosmosOffchainConfigDigester) ConfigDigest(cc types.ContractConfig) (types.ConfigDigest, error) {
 	signers := make([]string, 0, len(cc.Signers))
@@ -39,7 +42,7 @@ func (d CosmosOffchainConfigDigester) ConfigDigest(cc types.ContractConfig) (typ
 		OffchainConfig:        cc.OffchainConfig,
 	}
 
-	configDigest := configDigestFromBytes(chainContractConfig.Digest())
+	configDigest := configDigestFromBytes(chainContractConfig.Digest(d.ChainID, d.FeedID))
 
 	return configDigest, nil
 }
