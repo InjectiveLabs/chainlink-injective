@@ -32,8 +32,13 @@ type JobService interface {
 
 var _ JobService = &jobService{}
 
+type JobDB interface {
+}
+
 type jobService struct {
 	dbSvc  db.DBService
+	dbGorm db.ExternalGorm
+
 	client chainlink.WebhookClient
 
 	peerKey              p2pkey.Key
@@ -59,8 +64,12 @@ type jobService struct {
 	logger log.Logger
 }
 
+type DBDriver interface {
+	String() string
+}
+
 func NewJobService(
-	dbSvc db.DBService,
+	dbDriver DBDriver,
 	client chainlink.WebhookClient,
 	peerKey p2pkey.Key,
 	peerNetworkingConfig p2p.NetworkingConfig,
@@ -71,11 +80,9 @@ func NewJobService(
 	tmClient tmclient.TendermintClient,
 	onchainSigner sdk.AccAddress,
 	cosmosKeyring keyring.Keyring,
-) JobService {
+) (JobService, error) {
 	j := &jobService{
-		dbSvc:  dbSvc,
-		client: client,
-
+		client:               client,
 		peerKey:              peerKey,
 		peerNetworkingConfig: peerNetworkingConfig,
 		ocrKey:               ocrKey,
@@ -102,11 +109,21 @@ func NewJobService(
 		}),
 	}
 
+	switch v := dbDriver.(type) {
+	case db.DBService:
+		j.dbSvc = v
+	case db.ExternalGorm:
+		j.dbGorm = v
+	default:
+		err := errors.Errorf("unsupported DB driver: %s", dbDriver.String())
+		return nil, err
+	}
+
 	if err := j.restartExistingJobs(); err != nil {
 		j.logger.WithError(err).Warningln("⚠️  failed to restart existing jobs")
 	}
 
-	return j
+	return j, nil
 }
 
 type Config struct {
@@ -116,15 +133,24 @@ type Config struct {
 }
 
 // restartExistingJobs revives jobs upon service start. Not thread
-func (j *jobService) restartExistingJobs() error {
+func (j *jobService) restartExistingJobs() (err error) {
 	dbCtx, cancelFn := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancelFn()
 
-	jobs, err := j.dbSvc.ListJobs(dbCtx, &model.Cursor{
-		Limit: 10000,
-	})
-	if err != nil {
-		return err
+	var jobs []*model.Job
+
+	if j.dbSvc != nil {
+		jobs, err = j.dbSvc.ListJobs(dbCtx, &model.Cursor{
+			Limit: 10000,
+		})
+		if err != nil {
+			return err
+		}
+	} else if j.dbGorm != nil {
+		jobs, err = j.dbGorm.LoadJobs(dbCtx)
+		if err != nil {
+			return err
+		}
 	}
 
 	for _, job := range jobs {
@@ -157,24 +183,35 @@ func (j *jobService) StartJob(jobID string, jobSpec *model.JobSpec) error {
 
 	dbCtx, cancelFn := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancelFn()
-	if err := j.dbSvc.UpsertJob(dbCtx, &model.Job{
+
+	newJob := &model.Job{
 		JobID:     model.ID(jobID),
 		Spec:      jobSpec,
 		IsActive:  true,
 		CreatedAt: time.Now().UTC(),
-	}); err != nil {
-		j.logger.WithError(err).Warningln("failed to store Job in DB")
-		return ErrInternal
+	}
+
+	if j.dbSvc != nil {
+		if err := j.dbSvc.UpsertJob(dbCtx, newJob); err != nil {
+			j.logger.WithError(err).Warningln("failed to store Job in DB")
+			return ErrInternal
+		}
+	} else if j.dbGorm != nil {
+		if err := j.dbGorm.CreateJob(dbCtx, newJob); err != nil {
+			j.logger.WithError(err).Warningln("failed to store Job in DB")
+			return ErrInternal
+		}
 	}
 
 	return j.ocrStartForJob(jobID, jobSpec)
 }
 
-func (j *jobService) ocrStartForJob(jobID string, jobSpec *model.JobSpec) error {
-	stateDB, err := db.NewJobDBService(j.dbSvc.Connection(), jobID)
-	if err != nil {
-		err = errors.Wrap(err, "failed to init Job DB service")
-		return err
+func (j *jobService) ocrStartForJob(jobID string, jobSpec *model.JobSpec) (err error) {
+	var dbDriver DBDriver
+	if j.dbSvc != nil {
+		dbDriver = j.dbSvc
+	} else if j.dbGorm != nil {
+		dbDriver = j.dbGorm
 	}
 
 	transmitter := &injective.CosmosModuleTransmitter{
@@ -207,7 +244,7 @@ func (j *jobService) ocrStartForJob(jobID string, jobSpec *model.JobSpec) error 
 	job, err := j.newJob(
 		jobID,
 		jobSpec,
-		stateDB,
+		dbDriver,
 		transmitter,
 		medianReporter,
 		onchainKeyring,

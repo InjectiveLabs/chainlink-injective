@@ -22,13 +22,14 @@ type Job struct {
 }
 
 type JobSpec struct {
-	IsBootstrapPeer             bool     `json:"isBootstrapPeer" bson:"isBootstrapPeer"`
-	FeedID                      ID       `json:"feedId" bson:"feedId"`
-	KeyID                       ID       `json:"keyId" bson:"keyId"`
-	P2PBootstrapPeers           []string `json:"p2pBootstrapPeers" bson:"p2pBootstrapPeers"`
-	ContractConfigConfirmations int      `json:"contractConfigConfirmations" bson:"contractConfigConfirmations"`
-	ObservationTimeout          string   `json:"observationTimeout" bson:"observationTimeout"`
-	BlockchainTimeout           string   `json:"blockchainTimeout" bson:"blockchainTimeout"`
+	IsBootstrapPeer                        bool     `json:"isBootstrapPeer" bson:"isBootstrapPeer"`
+	FeedID                                 ID       `json:"feedId" bson:"feedId"`
+	KeyID                                  ID       `json:"keyId" bson:"keyId"`
+	P2PBootstrapPeers                      []string `json:"p2pBootstrapPeers" bson:"p2pBootstrapPeers"`
+	ContractConfigConfirmations            int      `json:"contractConfigConfirmations" bson:"contractConfigConfirmations"`
+	ContractConfigTrackerSubscribeInterval string   `json:"contractConfigTrackerSubscribeInterval" bson:"contractConfigTrackerSubscribeInterval"`
+	ObservationTimeout                     string   `json:"observationTimeout" bson:"observationTimeout"`
+	BlockchainTimeout                      string   `json:"blockchainTimeout" bson:"blockchainTimeout"`
 }
 
 type JobPersistentState struct {

@@ -75,7 +75,7 @@ type peerService struct {
 	peer    Peer
 	peerKey p2pkey.Key
 	peerID  p2pkey.PeerID
-	db      DiscovererDatabase
+	peerDB  DiscovererDatabase
 
 	runningMux sync.RWMutex
 	running    bool
@@ -85,10 +85,14 @@ type peerService struct {
 	logger log.Logger
 }
 
+type DBDriver interface {
+	String() string
+}
+
 func NewService(
 	key p2pkey.Key,
 	cfg NetworkingConfig,
-	db DiscovererDatabase,
+	peerDB DiscovererDatabase,
 ) (Service, error) {
 	if err := cfg.Validate(); err != nil {
 		return nil, err
@@ -110,7 +114,8 @@ func NewService(
 		peer:    nil,
 		peerKey: key,
 		peerID:  peerID,
-		db:      db,
+
+		peerDB: peerDB,
 
 		logger: logging.NewSuplog(minLogLevel, false).WithFields(log.Fields{
 			"svc": "p2p_peer",
@@ -145,7 +150,7 @@ func (p *peerService) Start() (err error) {
 			V2AnnounceAddresses:  p.cfg.P2PV2AnnounceAddresses,
 			V2DeltaReconcile:     p.cfg.P2PV2DeltaReconcile,
 			V2DeltaDial:          p.cfg.P2PV2DeltaDial,
-			V2DiscovererDatabase: p.db,
+			V2DiscovererDatabase: p.peerDB,
 			EndpointConfig: ocrnetworking.EndpointConfig{
 				IncomingMessageBufferSize: p.cfg.IncomingMessageBufferSize,
 				OutgoingMessageBufferSize: p.cfg.OutgoingMessageBufferSize,

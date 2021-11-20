@@ -238,11 +238,15 @@ Commands:
   version                  Print the version information and exit.
 ```
 
-Start a local MongoDB instance:
+**Make sure PostgreSQL databases created**
+
+In a PostgreSQL-enabled console run:
 
 ```bash
-> make mongo
-# to stop: make mongo-stop
+> createdb ocr2-oracle0
+> createdb ocr2-oracle1
+> createdb ocr2-oracle2
+> createdb ocr2-oracle3
 ```
 
 Run ALL 4 oracle instances at once:

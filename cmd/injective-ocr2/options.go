@@ -336,9 +336,18 @@ func initP2PKeyOptions(
 
 func initDBOptions(
 	c *cli.Cmd,
+	dbEngine **string,
 	dbMongoConnection **string,
 	dbMongoDBName **string,
+	dbPostgresURL **string,
 ) {
+	*dbEngine = c.String(cli.StringOpt{
+		Name:   "D db-engine",
+		Desc:   "Specify DB engine to use: mongo, postgres (default).",
+		EnvVar: "ORACLE_DB_ENGINE",
+		Value:  "postgres",
+	})
+
 	*dbMongoConnection = c.String(cli.StringOpt{
 		Name:   "M mongo-connection",
 		Desc:   "Specify MongoDB connection string.",
@@ -352,6 +361,14 @@ func initDBOptions(
 		EnvVar: "ORACLE_DB_MONGO_DBNAME",
 		Value:  "ocr2",
 	})
+
+	*dbPostgresURL = c.String(cli.StringOpt{
+		Name:   "P postgres-url",
+		Desc:   "Specify PostgreSQL connection string.",
+		EnvVar: "ORACLE_DB_PG_CONNECTION",
+		Value:  "postgresql://localhost:5432/chainlink_test",
+	})
+
 }
 
 // initStatsdOptions sets options for StatsD metrics.

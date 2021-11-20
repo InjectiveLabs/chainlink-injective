@@ -19,6 +19,7 @@ type DBService interface {
 	DBName() string
 	Client() *mongo.Client
 	Connection() dbconn.Conn
+	String() string
 	Close()
 }
 
@@ -136,6 +137,10 @@ type dbService struct {
 	db   *mongo.Client
 
 	svcTags metrics.Tags
+}
+
+func (d *dbService) String() string {
+	return "DB Driver: mongoDB svc"
 }
 
 func (d *dbService) DBName() string {

@@ -6,11 +6,14 @@ import (
 	"sync"
 	"time"
 
+	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/pkg/errors"
 	log "github.com/xlab/suplog"
 
+	ocrcore "github.com/smartcontractkit/chainlink/core/services/offchainreporting2"
 	"github.com/smartcontractkit/libocr/commontypes"
 	ocr2 "github.com/smartcontractkit/libocr/offchainreporting2"
+	"github.com/smartcontractkit/libocr/offchainreporting2/reportingplugin/median"
 	ocrtypes "github.com/smartcontractkit/libocr/offchainreporting2/types"
 
 	"github.com/InjectiveLabs/chainlink-injective/chainlink"
@@ -21,7 +24,6 @@ import (
 	"github.com/InjectiveLabs/chainlink-injective/keys/p2pkey"
 	"github.com/InjectiveLabs/chainlink-injective/logging"
 	"github.com/InjectiveLabs/chainlink-injective/p2p"
-	"github.com/smartcontractkit/libocr/offchainreporting2/reportingplugin/median"
 )
 
 type Job interface {
@@ -35,10 +37,14 @@ type Job interface {
 var _ Job = &job{}
 
 type job struct {
+	dbSvc    db.DBService
+	dbJobSvc db.JobDBService
+	dbGorm   db.ExternalGorm
+	stateDB  JobStateDB
+
 	jobID   string
 	jobSpec *model.JobSpec
 
-	stateDB                JobStateDB
 	client                 chainlink.WebhookClient
 	transmitter            ocrtypes.ContractTransmitter
 	medianReporter         median.MedianContract
@@ -72,7 +78,7 @@ type p2pService interface {
 func (s *jobService) newJob(
 	jobID string,
 	jobSpec *model.JobSpec,
-	stateDB db.JobDBService,
+	dbDriver DBDriver,
 	transmitter ocrtypes.ContractTransmitter,
 	medianReporter median.MedianContract,
 	onchainKeyring ocrtypes.OnchainKeyring,
@@ -83,9 +89,6 @@ func (s *jobService) newJob(
 		jobID:   jobID,
 		jobSpec: jobSpec,
 
-		stateDB: &jobDBWrapper{
-			svc: stateDB,
-		},
 		client:                 s.client,
 		transmitter:            transmitter,
 		medianReporter:         medianReporter,
@@ -100,6 +103,35 @@ func (s *jobService) newJob(
 			"svc":   "ocr2_job",
 			"jobID": jobID,
 		}),
+	}
+
+	switch v := dbDriver.(type) {
+	case db.DBService:
+		j.dbSvc = v
+	case db.ExternalGorm:
+		j.dbGorm = v
+	default:
+		err := errors.Errorf("unsupported DB driver: %s", dbDriver.String())
+		return nil, err
+	}
+
+	if j.dbSvc != nil {
+		dbJobSvc, err := db.NewJobDBService(j.dbSvc.Connection(), jobID)
+		if err != nil {
+			err = errors.Wrap(err, "failed to init Job DB service")
+			return nil, err
+		}
+
+		j.dbJobSvc = dbJobSvc
+		j.stateDB = NewJobDBWrapper(dbJobSvc)
+	} else if j.dbGorm != nil {
+		sqlConn, err := j.dbGorm.Connection()
+		if err != nil {
+			err = errors.Wrap(err, "failed to get SQL connection")
+			return nil, err
+		}
+
+		j.stateDB = ocrcore.NewDB(sqlConn, 1)
 	}
 
 	if err := j.initOracleService(
@@ -124,10 +156,25 @@ func (j *job) initOracleService(
 		return errors.New("refusing to start Job with unexpected OCR2 Key")
 	}
 
+	var peerDB p2p.DiscovererDatabase
+
+	if j.dbJobSvc != nil {
+		peerDB = p2p.NewAnnounceDBWrapper(j.dbJobSvc)
+	} else if j.dbGorm != nil {
+		sqlConn, err := j.dbGorm.Connection()
+		if err != nil {
+			err = errors.Wrap(err, "failed to get SQL connection")
+			return err
+		}
+
+		peerID := peerKey.MustGetPeerID()
+		peerDB = ocrcore.NewDiscovererDatabase(sqlConn, peer.ID(peerID))
+	}
+
 	p2pService, err := p2p.NewService(
 		peerKey,
 		peerNetworkingConfig,
-		j.stateDB,
+		peerDB,
 	)
 	if err != nil {
 		err = errors.Wrap(err, "failed to init P2P Service")
@@ -198,11 +245,11 @@ func (j *job) initOracleService(
 	}
 
 	numericalMedianFactory := median.NumericalMedianFactory{
-		ContractTransmitter:   j.medianReporter,
-		DataSource:            j, // reads from Observe() of this job
-		JuelsPerEthDataSource: &dsZero{},
-		Logger:                ocrLogger,
-		ReportCodec:           median_report.ReportCodec{},
+		ContractTransmitter:       j.medianReporter,
+		DataSource:                j, // reads from Observe() of this job
+		JuelsPerFeeCoinDataSource: &dsZero{},
+		Logger:                    ocrLogger,
+		ReportCodec:               median_report.ReportCodec{},
 	}
 
 	ocrArgs := ocr2.OracleArgs{

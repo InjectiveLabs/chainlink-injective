@@ -10,18 +10,22 @@ import (
 
 	"github.com/InjectiveLabs/chainlink-injective/db"
 	"github.com/InjectiveLabs/chainlink-injective/db/model"
-	"github.com/InjectiveLabs/chainlink-injective/p2p"
 )
 
 type JobStateDB interface {
 	ocrtypes.Database
-	p2p.DiscovererDatabase
 }
 
 var _ JobStateDB = &jobDBWrapper{}
 
 type jobDBWrapper struct {
 	svc db.JobDBService
+}
+
+func NewJobDBWrapper(dbSvc db.JobDBService) JobStateDB {
+	return &jobDBWrapper{
+		svc: dbSvc,
+	}
 }
 
 func (j *jobDBWrapper) WriteState(ctx context.Context, configDigest ocrtypes.ConfigDigest, state ocrtypes.PersistentState) error {
@@ -186,31 +190,6 @@ func (j *jobDBWrapper) DeletePendingTransmission(ctx context.Context, reportTime
 
 func (j *jobDBWrapper) DeletePendingTransmissionsOlderThan(ctx context.Context, timestamp time.Time) error {
 	return j.svc.DeletePendingTransmissionsOlderThan(ctx, timestamp)
-}
-
-func (j *jobDBWrapper) StoreAnnouncement(ctx context.Context, peerID string, ann []byte) error {
-	return j.svc.UpsertAnnouncement(ctx, &model.JobPeerAnnouncement{
-		JobID:     j.svc.JobID(),
-		PeerID:    model.ID(peerID),
-		Announce:  ann,
-		CreatedAt: time.Now().UTC(),
-	})
-}
-
-func (j *jobDBWrapper) ReadAnnouncements(ctx context.Context, peerIDs []string) (map[string][]byte, error) {
-	announcements, err := j.svc.ListAnnouncements(ctx, peerIDs, &model.Cursor{
-		Limit: 10000,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	result := make(map[string][]byte, len(announcements))
-	for _, ann := range announcements {
-		result[string(ann.PeerID)] = ann.Announce
-	}
-
-	return result, nil
 }
 
 func configDigestHex(configDigest [32]byte) string {

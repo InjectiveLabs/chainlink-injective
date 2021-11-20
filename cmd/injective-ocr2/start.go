@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"net/url"
 	"os"
 	"time"
 
@@ -67,8 +68,10 @@ func startCmd(cmd *cli.Cmd) {
 		p2pV2DeltaReconcile          *string
 		p2pV2ListenAddresses         *[]string
 
+		dbEngine          *string
 		dbMongoConnection *string
 		dbMongoDBName     *string
+		dbPostgresURL     *string
 
 		eiChainlinkURL *string
 		eiAccessKeyIC  *string
@@ -137,8 +140,10 @@ func startCmd(cmd *cli.Cmd) {
 
 	initDBOptions(
 		cmd,
+		&dbEngine,
 		&dbMongoConnection,
 		&dbMongoDBName,
+		&dbPostgresURL,
 	)
 
 	initChainlinkOptions(
@@ -224,38 +229,66 @@ func startCmd(cmd *cli.Cmd) {
 		waitForService(daemonWaitCtx, daemonConn)
 		cancelWait()
 
-		// Setup MongoDB database connection
-		//
+		var dbDriver ocr2.DBDriver
 
-		log.Infoln("Connecting for MongoDB")
+		switch *dbEngine {
+		case "postgres":
+			// Initialize PostgreSQL connection
+			//
 
-		dbConnContext, cancelFn := context.WithTimeout(context.Background(), 20*time.Second)
-		dbConn, err := dbconn.NewMongoConn(dbConnContext, &dbconn.MongoConfig{
-			Connection: *dbMongoConnection,
-			Database:   *dbMongoDBName,
-		})
-		if err != nil {
-			log.WithError(err).Fatalln("failed to init MongoDB client")
-		} else if err := dbConn.TestConn(dbConnContext); err != nil {
-			log.Fatalln(err)
-		}
-		cancelFn()
-		closer.Bind(func() {
-			if err := dbConn.Close(); err != nil {
-				log.WithError(err).Warningln("failed to close MongoDB connection")
+			log.Infoln("Connecting to DB using Gorm (PostgreSQL)")
+
+			pgURL, err := url.ParseRequestURI(*dbPostgresURL)
+			if err != nil {
+				log.WithError(err).Fatalln("failed to parse PostgreSQL URL: %s", *dbPostgresURL)
 			}
-		})
 
-		dbSvc, err := db.NewDBService(dbConn)
-		if err != nil {
-			err = errors.Wrap(err, "failed to init DB service")
-			log.Fatalln(err)
+			dbGorm, err := db.NewExternalPostgres(pgURL)
+			if err != nil {
+				log.WithError(err).Fatalln("failed to connect to PostgreSQL instance")
+			}
+
+			dbDriver = dbGorm
+
+		case "mongo":
+			// Setup MongoDB database connection
+			//
+
+			log.Infoln("Connecting to MongoDB")
+
+			dbConnContext, cancelFn := context.WithTimeout(context.Background(), 20*time.Second)
+			dbConn, err := dbconn.NewMongoConn(dbConnContext, &dbconn.MongoConfig{
+				Connection: *dbMongoConnection,
+				Database:   *dbMongoDBName,
+			})
+			if err != nil {
+				log.WithError(err).Fatalln("failed to init MongoDB client")
+			} else if err := dbConn.TestConn(dbConnContext); err != nil {
+				log.Fatalln(err)
+			}
+			cancelFn()
+
+			closer.Bind(func() {
+				if err := dbConn.Close(); err != nil {
+					log.WithError(err).Warningln("failed to close MongoDB connection")
+				}
+			})
+
+			dbSvc, err := db.NewDBService(dbConn)
+			if err != nil {
+				err = errors.Wrap(err, "failed to init DB service")
+				log.Fatalln(err)
+			}
+			closer.Bind(func() {
+				dbSvc.Close()
+			})
+
+			log.Infoln("Successfully connected to MongoDB")
+
+			dbDriver = dbSvc
+		default:
+			log.Fatalln("Unsupported DB engine:", *dbEngine)
 		}
-		closer.Bind(func() {
-			dbSvc.Close()
-		})
-
-		log.Infoln("Successfully connected to MongoDB")
 
 		// Init Chainlink Node Webhook client
 		//
@@ -319,8 +352,8 @@ func startCmd(cmd *cli.Cmd) {
 		// Start the Job service (the main OCR2 jobs dispatcher)
 		//
 
-		jobSvc := ocr2.NewJobService(
-			dbSvc,
+		jobSvc, err := ocr2.NewJobService(
+			dbDriver,
 			webhookClient,
 			peerKey,
 			p2pNetworkConfig,
@@ -332,6 +365,10 @@ func startCmd(cmd *cli.Cmd) {
 			senderAddress,
 			cosmosKeyring,
 		)
+		if err != nil {
+			err = errors.Wrap(err, "failed to init OCR2 JobService")
+			log.Fatalln(err)
+		}
 		closer.Bind(func() {
 			jobSvc.Close()
 		})
